@@ -4,7 +4,7 @@
 2. npm install -g nodemon
 # Execute program
 1. nodemon [backend]
-1. npm start [fornend]
+1. npm start [frontend]
 # Install React
 1. npx create-react-app front-end
 # Youtube Link
