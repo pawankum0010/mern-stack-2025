@@ -1,0 +1,415 @@
+{
+	"info": {
+		"_postman_id": "58701bde-68f6-4d39-816e-9b94fbb4f562",
+		"name": "MyAccount-Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "37836406"
+	},
+	"item": [
+		{
+			"name": "Super Admin",
+			"item": [
+				{
+					"name": "Register",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbnNsdCI6IktuaGdZNUs2aXlEUkNOUXdqbThqVnNzdm1adTc3YTI4IiwiX19tdCI6Ind5b244OXBvYnphNmZwYnlsdXMxb3YycmpxbDZ1bm0wIiwiX19jdHIiOjU5ODcsInJlZGlyZWN0IjoibXlhY2NvdW50IiwiZXhwIjoxNzUyMDQwOTU0LCJpYXQiOjE3NTA3NDQ5NTR9.8UutFuFdaLpeRxOD5ozDYdE15iJ06X-_jCcwHZ9GaE8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"sonu\",\n  \"email\":\"pawan@gmail.com\",\n  \"password\":\"Bsa@123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/auth/register-superadmin",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"auth",
+								"register-superadmin"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Result",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"name\": \"sonu\",\n  \"email\":\"pawan@gmail.com\",\n  \"password\":\"Bsa@123456\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:5000/api/auth/register-superadmin",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "5000",
+									"path": [
+										"api",
+										"auth",
+										"register-superadmin"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": null,
+							"header": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "624"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"270-3ThdVkAN6cEYsAdELCxq+sdi5L0\""
+								},
+								{
+									"key": "Date",
+									"value": "Sun, 09 Nov 2025 08:37:36 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Keep-Alive",
+									"value": "timeout=5"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"status\": true,\n    \"message\": \"Superadmin registered successfully\",\n    \"data\": {\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTEwNTJkMDNiN2NlMjBhZjhmNDEyZmIiLCJlbWFpbCI6InBhd2FuQGdtYWlsLmNvbSIsInJvbGUiOnsiaWQiOiI2OTEwNTJkMDNiN2NlMjBhZjhmNDEyZjkiLCJuYW1lIjoic3VwZXJhZG1pbiJ9LCJpYXQiOjE3NjI2Nzc0NTYsImV4cCI6MTc2Mjc2Mzg1Nn0.4XiuNOP3O5cCPHyQuY0hr1uW3BiNE3e70vlfKICTrFI\",\n        \"user\": {\n            \"name\": \"sonu\",\n            \"email\": \"pawan@gmail.com\",\n            \"role\": {\n                \"_id\": \"691052d03b7ce20af8f412f9\",\n                \"name\": \"superadmin\"\n            },\n            \"_id\": \"691052d03b7ce20af8f412fb\",\n            \"createdAt\": \"2025-11-09T08:37:36.415Z\",\n            \"updatedAt\": \"2025-11-09T08:37:36.415Z\",\n            \"id\": \"691052d03b7ce20af8f412fb\"\n        }\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Role",
+			"item": [
+				{
+					"name": "Create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"sdfsdfd\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/roles/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"roles",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/roles/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"roles",
+								""
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTEwNTJkMDNiN2NlMjBhZjhmNDEyZmIiLCJlbWFpbCI6InBhd2FuQGdtYWlsLmNvbSIsInJvbGUiOnsiaWQiOiI2OTEwNTJkMDNiN2NlMjBhZjhmNDEyZjkiLCJuYW1lIjoic3VwZXJhZG1pbiJ9LCJpYXQiOjE3NjI2Nzc4ODcsImV4cCI6MTc2Mjc2NDI4N30.akN1rcPbRobo0EltHGShvi1bBk0ZfXqcppG4wXqNXGw",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Customer/Admin/Support",
+			"item": [
+				{
+					"name": "Get Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/users/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbnNsdCI6IktuaGdZNUs2aXlEUkNOUXdqbThqVnNzdm1adTc3YTI4IiwiX19tdCI6Ind5b244OXBvYnphNmZwYnlsdXMxb3YycmpxbDZ1bm0wIiwiX19jdHIiOjU5ODcsInJlZGlyZWN0IjoibXlhY2NvdW50IiwiZXhwIjoxNzUyMDQwOTU0LCJpYXQiOjE3NTA3NDQ5NTR9.8UutFuFdaLpeRxOD5ozDYdE15iJ06X-_jCcwHZ9GaE8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\":\"Pawan Kumar\",\n    \"email\":\"pawankum0010@gmail.com\",\n    \"phone\":\"8010043297\",\n    \"age\":\"1989-05-18\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/users/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/users/691040d01541e5556767c3c93",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"users",
+								"691040d01541e5556767c3c93"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbnNsdCI6IktuaGdZNUs2aXlEUkNOUXdqbThqVnNzdm1adTc3YTI4IiwiX19tdCI6Ind5b244OXBvYnphNmZwYnlsdXMxb3YycmpxbDZ1bm0wIiwiX19jdHIiOjU5ODcsInJlZGlyZWN0IjoibXlhY2NvdW50IiwiZXhwIjoxNzUyMDQwOTU0LCJpYXQiOjE3NTA3NDQ5NTR9.8UutFuFdaLpeRxOD5ozDYdE15iJ06X-_jCcwHZ9GaE8",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Customer prefers morning appointments.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/users/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"users",
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjbnNsdCI6ImNvbnN1bHQtaW50YWtlLTMtNjY3NC0xNzQ5NjE2OTEzIiwiX19tdCI6IjM4dnV3d3hjZDlyYTRxbjBkOHF5ZmIxZ3R6dWZrcGl0IiwiX19jdHIiOjY2NzQsInJlZGlyZWN0IjoiIiwiZXhwIjoxNzUyMjI0MjI2LCJpYXQiOjE3NTA5MjgyMjZ9.pZAPk1HHiixCM6cGlSGfcoBdjdyd-OVbfP26laFk80I",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Customer prefers morning appointments.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/users/691040d01541e5556767c3c9",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"users",
+								"691040d01541e5556767c3c9"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTEwNTJkMDNiN2NlMjBhZjhmNDEyZmIiLCJlbWFpbCI6InBhd2FuQGdtYWlsLmNvbSIsInJvbGUiOnsiaWQiOiI2OTEwNTJkMDNiN2NlMjBhZjhmNDEyZjkiLCJuYW1lIjoic3VwZXJhZG1pbiJ9LCJpYXQiOjE3NjI2Nzc4ODcsImV4cCI6MTc2Mjc2NDI4N30.akN1rcPbRobo0EltHGShvi1bBk0ZfXqcppG4wXqNXGw",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		}
+	]
+}
