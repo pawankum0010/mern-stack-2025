@@ -60,5 +60,16 @@ JWT_EXPIRES_IN=1h
 
 All responses are JSON and errors return appropriate HTTP status codes.
 
+## Frontend Setup
+- From the `frontend` directory run `npm install`.
+- Copy your API base URL into an environment variable if needed (defaults to `http://localhost:5000/api`).
+- Start the React dev server with `npm start`. The UI includes:
+  - Login screen for admins/superadmins.
+  - Protected dashboard to create, edit, and delete users (with Bootstrap styling, GSAP drawer animations).
+  - Automatic token handling via bearer authentication.
+
+## API Testing
+- Import `MyAccount-Test.postman_collection.json` into Postman to replay the verified requests used during development.
+
 
 
