@@ -12,6 +12,7 @@ import {
   Table,
 } from 'react-bootstrap';
 import { gsap } from 'gsap';
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -64,8 +65,13 @@ const DashboardPage = () => {
 
   const canDeleteUsers = useMemo(() => {
     const roleName = user?.role?.name?.toLowerCase();
-    return roleName === 'superadmin';
+    return roleName === 'superadmin' || roleName === 'admin';
   }, [user]);
+
+  const getRoleName = (role) =>
+    typeof role === 'string'
+      ? role.toLowerCase()
+      : role?.name?.toLowerCase() || role?.roleName?.toLowerCase();
 
   // --- data loaders ---
   const fetchRoles = async () => {
@@ -231,14 +237,24 @@ const DashboardPage = () => {
     setIsDrawerOpen(true);
   };
 
-  const handleDeleteUser = async (userId) => {
+  const handleDeleteUser = async (user) => {
+    const targetRole = getRoleName(user.role);
+
+    if (targetRole === 'superadmin') {
+      setFeedback({
+        type: 'danger',
+        message: 'Superadmin account cannot be deleted.',
+      });
+      return;
+    }
+
     const confirmed = window.confirm(
       'Are you sure you want to delete this user? This action cannot be undone.'
     );
     if (!confirmed) return;
 
     try {
-      await api.delete(`/users/${userId}`);
+      await api.delete(`/users/${user._id}`);
       setFeedback({ type: 'success', message: 'User deleted successfully.' });
       fetchUsers();
     } catch (error) {
@@ -270,6 +286,7 @@ const DashboardPage = () => {
               <th>Role</th>
               <th>Phone</th>
               <th>DOB</th>
+              <th>Address</th>
               <th>Created</th>
               {canManageUsers && <th style={{ width: 160 }}>Actions</th>}
             </tr>
@@ -290,6 +307,20 @@ const DashboardPage = () => {
                     ? new Date(item.dateOfBirth).toLocaleDateString()
                     : item.dob || '-'}
                 </td>
+                <td>
+                  {item.address
+                    ? [
+                        item.address.line1,
+                        item.address.line2,
+                        item.address.city,
+                        item.address.state,
+                        item.address.postalCode,
+                        item.address.country,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')
+                    : '-'}
+                </td>
                 <td>{item.createdAt ? new Date(item.createdAt).toLocaleString() : '-'}</td>
                 {canManageUsers && (
                   <td>
@@ -298,16 +329,18 @@ const DashboardPage = () => {
                         size="sm"
                         variant="outline-primary"
                         onClick={() => handleEditUser(item)}
+                        className="d-flex align-items-center justify-content-center"
                       >
-                        Edit
+                        <FiEdit2 />
                       </Button>
                       {canDeleteUsers && (
                         <Button
                           size="sm"
                           variant="outline-danger"
-                          onClick={() => handleDeleteUser(item._id)}
+                          onClick={() => handleDeleteUser(item)}
+                          className="d-flex align-items-center justify-content-center"
                         >
-                          Delete
+                          <FiTrash2 />
                         </Button>
                       )}
                     </div>
