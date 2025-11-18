@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 
 import AppNavbar from '../components/AppNavbar';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import api from '../api/client';
 
 const ProductListingPage = () => {
   const { isAuthenticated } = useAuth();
+  const { refreshCart } = useCart();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -83,6 +85,7 @@ const ProductListingPage = () => {
     try {
       await api.post('/cart/add', { productId, quantity: 1 });
       setCartMessage({ type: 'success', text: 'Added to cart!' });
+      refreshCart(); // Update cart count in navbar
       setTimeout(() => setCartMessage(null), 3000);
     } catch (error) {
       setCartMessage({ type: 'danger', text: error.message || 'Failed to add to cart' });

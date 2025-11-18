@@ -15,10 +15,12 @@ import { FiTrash2, FiPlus, FiMinus } from 'react-icons/fi';
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import api from '../api/client';
 
 const CartPage = () => {
   const { isAuthenticated } = useAuth();
+  const { refreshCart } = useCart();
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,7 @@ const CartPage = () => {
     try {
       await api.put(`/cart/item/${itemId}`, { quantity: newQuantity });
       await fetchCart();
+      refreshCart(); // Update cart count in navbar
     } catch (error) {
       setError(error.message || 'Failed to update quantity');
     } finally {
@@ -64,6 +67,7 @@ const CartPage = () => {
     try {
       await api.delete(`/cart/item/${itemId}`);
       await fetchCart();
+      refreshCart(); // Update cart count in navbar
     } catch (error) {
       setError(error.message || 'Failed to remove item');
     } finally {

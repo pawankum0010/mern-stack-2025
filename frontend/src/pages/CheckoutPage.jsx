@@ -14,10 +14,12 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import api from '../api/client';
 
 const CheckoutPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { refreshCart } = useCart();
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -90,9 +92,15 @@ const CheckoutPage = () => {
 
     try {
       const { data } = await api.post('/orders', formData);
-      navigate(`/orders/${data?.data?._id}`);
+      refreshCart(); // Clear cart count after order
+      if (data?.data?._id) {
+        navigate(`/orders/${data.data._id}`);
+      } else {
+        navigate('/orders');
+      }
     } catch (error) {
-      setError(error.message || 'Failed to place order');
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to place order';
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }

@@ -1,10 +1,13 @@
-import { Navbar, Nav, Button, Container } from 'react-bootstrap';
+import { Navbar, Nav, Button, Container, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { FiShoppingCart } from 'react-icons/fi';
 
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 
 const AppNavbar = () => {
   const { user, logout } = useAuth();
+  const { cartCount } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -22,8 +25,34 @@ const AppNavbar = () => {
             <Nav.Link onClick={() => navigate('/')}>Users</Nav.Link>
             <Nav.Link onClick={() => navigate('/products')}>Products</Nav.Link>
             <Nav.Link onClick={() => navigate('/shop')}>Shop</Nav.Link>
-            <Nav.Link onClick={() => navigate('/cart')}>Cart</Nav.Link>
             <Nav.Link onClick={() => navigate('/orders')}>Orders</Nav.Link>
+          </Nav>
+          <Nav>
+            <Nav.Link
+              onClick={() => navigate('/cart')}
+              className="d-flex align-items-center position-relative"
+              style={{ cursor: 'pointer' }}
+            >
+              <FiShoppingCart size={20} />
+              {cartCount > 0 && (
+                <Badge
+                  bg="danger"
+                  className="position-absolute"
+                  style={{
+                    top: '-5px',
+                    right: '-5px',
+                    fontSize: '0.7rem',
+                    minWidth: '18px',
+                    height: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {cartCount > 99 ? '99+' : cartCount}
+                </Badge>
+              )}
+            </Nav.Link>
           </Nav>
           <div className="d-flex align-items-center gap-3 text-light">
             {user && (

@@ -61,7 +61,12 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
   const total = subtotal + Number(tax) + Number(shipping);
 
+  // Generate order number
+  const orderCount = await Order.countDocuments();
+  const orderNumber = `ORD-${Date.now()}-${String(orderCount + 1).padStart(6, '0')}`;
+
   const order = await Order.create({
+    orderNumber,
     user: userId,
     items: orderItems,
     subtotal,
@@ -95,7 +100,9 @@ exports.createOrder = asyncHandler(async (req, res) => {
 
 exports.getOrders = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, status, userId } = req.query;
-  const requesterRole = req.user.role?.toLowerCase();
+  const requesterRole = req.requesterRole || (typeof req.user.role === 'string' 
+    ? req.user.role.toLowerCase() 
+    : req.user.role?.name?.toLowerCase() || '');
 
   const query = {};
 
@@ -141,7 +148,9 @@ exports.getOrders = asyncHandler(async (req, res) => {
 
 exports.getOrderById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const requesterRole = req.user.role?.toLowerCase();
+  const requesterRole = req.requesterRole || (typeof req.user.role === 'string' 
+    ? req.user.role.toLowerCase() 
+    : req.user.role?.name?.toLowerCase() || '');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid order id', statusCode: 400 });
@@ -172,7 +181,9 @@ exports.getOrderById = asyncHandler(async (req, res) => {
 exports.updateOrderStatus = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { status, notes } = req.body;
-  const requesterRole = req.user.role?.toLowerCase();
+  const requesterRole = req.requesterRole || (typeof req.user.role === 'string' 
+    ? req.user.role.toLowerCase() 
+    : req.user.role?.name?.toLowerCase() || '');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid order id', statusCode: 400 });
@@ -224,7 +235,9 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
 
 exports.deleteOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const requesterRole = req.user.role?.toLowerCase();
+  const requesterRole = req.requesterRole || (typeof req.user.role === 'string' 
+    ? req.user.role.toLowerCase() 
+    : req.user.role?.name?.toLowerCase() || '');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid order id', statusCode: 400 });
