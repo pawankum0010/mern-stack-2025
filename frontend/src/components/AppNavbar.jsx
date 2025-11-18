@@ -19,7 +19,9 @@ const AppNavbar = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link onClick={() => navigate('/')}>Dashboard</Nav.Link>
+            <Nav.Link onClick={() => navigate('/')}>Users</Nav.Link>
+            <Nav.Link onClick={() => navigate('/products')}>Products</Nav.Link>
+            <Nav.Link onClick={() => navigate('/shop')}>Shop</Nav.Link>
           </Nav>
           <div className="d-flex align-items-center gap-3 text-light">
             {user && (

@@ -36,6 +36,11 @@ JWT_EXPIRES_IN=1h
 - `DELETE /api/users/:id` – remove user (bearer token; superadmin only).
 - `POST /api/roles` – create role (bearer token; superadmin).
 - `GET /api/roles` – list roles (bearer token; superadmin/admin).
+- `GET /api/products` – list products (public; supports pagination, search, filters).
+- `GET /api/products/:id` – fetch product details (public).
+- `POST /api/products` – create product (bearer token; superadmin/admin).
+- `PUT /api/products/:id` – update product (bearer token; superadmin/admin).
+- `DELETE /api/products/:id` – delete product (bearer token; superadmin/admin).
 
 ### Request Notes
 - Authenticate with `Authorization: Bearer <jwt-token>`. Token payload includes user id, email, and role name.
@@ -58,6 +63,32 @@ JWT_EXPIRES_IN=1h
   }
   ```
 
+### Product Endpoints Notes
+- `GET /api/products` supports query parameters:
+  - `page`, `limit` – pagination
+  - `category`, `status`, `featured` – filters
+  - `search` – text search across name, description, category
+  - `minPrice`, `maxPrice` – price range
+  - `sortBy`, `sortOrder` – sorting (default: `createdAt` desc)
+- Product payload example:
+  ```json
+  {
+    "name": "Product Name",
+    "description": "Product description",
+    "price": 99.99,
+    "compareAtPrice": 129.99,
+    "sku": "SKU-001",
+    "category": "Electronics",
+    "tags": ["tag1", "tag2"],
+    "images": ["https://example.com/image.jpg"],
+    "stock": 100,
+    "status": "active",
+    "featured": true,
+    "weight": 1.5,
+    "vendor": "Vendor Name"
+  }
+  ```
+
 All responses are JSON and errors return appropriate HTTP status codes.
 
 ## Frontend Setup
@@ -66,6 +97,8 @@ All responses are JSON and errors return appropriate HTTP status codes.
 - Start the React dev server with `npm start`. The UI includes:
   - Login screen for admins/superadmins.
   - Protected dashboard to create, edit, and delete users (with Bootstrap styling, GSAP drawer animations).
+  - Product management page for admins/superadmins to manage eCommerce catalog.
+  - Public product listing page (`/shop`) with search, filters, and pagination.
   - Automatic token handling via bearer authentication.
 
 ## API Testing
