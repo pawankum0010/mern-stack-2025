@@ -24,7 +24,9 @@ const OrderDetailPage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadingLogs, setLoadingLogs] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState(null);
   const [status, setStatus] = useState('');
@@ -46,10 +48,23 @@ const OrderDetailPage = () => {
       const { data } = await api.get(`/orders/${id}`);
       setOrder(data?.data);
       setStatus(data?.data?.status || '');
+      fetchActivityLogs();
     } catch (error) {
       setError(error.message || 'Failed to load order');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchActivityLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const { data } = await api.get(`/orders/${id}/activity-logs`);
+      setActivityLogs(data?.data || []);
+    } catch (error) {
+      console.error('Failed to load activity logs:', error);
+    } finally {
+      setLoadingLogs(false);
     }
   };
 
@@ -59,10 +74,26 @@ const OrderDetailPage = () => {
     try {
       await api.put(`/orders/${id}/status`, { status });
       await fetchOrder();
+      await fetchActivityLogs();
     } catch (error) {
       setError(error.message || 'Failed to update status');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const handleViewInvoice = async () => {
+    try {
+      const response = await api.get(`/invoices/${id}/html`, {
+        responseType: 'text',
+      });
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(response.data);
+        newWindow.document.close();
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || error.message || 'Failed to load invoice');
     }
   };
 
@@ -71,10 +102,17 @@ const OrderDetailPage = () => {
       const response = await api.get(`/invoices/${id}/download`, {
         responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Check if response is PDF or HTML based on content type
+      const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
+      const isPDF = contentType.includes('application/pdf');
+      const extension = isPDF ? 'pdf' : 'html';
+      
+      const blob = new Blob([response.data], { type: contentType || (isPDF ? 'application/pdf' : 'text/html') });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `invoice-${order?.orderNumber || id}.html`);
+      link.setAttribute('download', `invoice-${order?.orderNumber || id}.${extension}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -135,11 +173,11 @@ const OrderDetailPage = () => {
             <div className="d-flex justify-content-between align-items-center mb-3">
               <h4>Order #{order.orderNumber}</h4>
               <div className="d-flex gap-2">
-                {order.status === 'approved' && (
+                {order.status !== 'pending' && order.status !== 'cancelled' && (
                   <>
                     <Button
                       variant="outline-success"
-                      onClick={() => navigate(`/invoices/${order._id}`)}
+                      onClick={handleViewInvoice}
                     >
                       <FiFileText className="me-2" />
                       View Invoice
@@ -303,6 +341,60 @@ const OrderDetailPage = () => {
                       </Form>
                     </Card.Body>
                   </Card>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        <Row className="g-4 mt-2">
+          <Col xs={12}>
+            <Card>
+              <Card.Header>
+                <Card.Title className="mb-0">Order Activity Log</Card.Title>
+              </Card.Header>
+              <Card.Body>
+                {loadingLogs ? (
+                  <div className="text-center py-3">
+                    <Spinner animation="border" size="sm" />
+                    <p className="mt-2 text-muted small">Loading activity logs...</p>
+                  </div>
+                ) : activityLogs.length === 0 ? (
+                  <p className="text-muted text-center py-3">No activity logs found.</p>
+                ) : (
+                  <div className="timeline">
+                    {activityLogs.map((log, idx) => (
+                      <div key={log._id} className="d-flex mb-3 pb-3 border-bottom">
+                        <div className="flex-shrink-0 me-3">
+                          <div
+                            className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                            style={{ width: '40px', height: '40px', fontSize: '0.875rem' }}
+                          >
+                            {idx + 1}
+                          </div>
+                        </div>
+                        <div className="flex-grow-1">
+                          <div className="d-flex justify-content-between align-items-start">
+                            <div>
+                              <h6 className="mb-1 text-capitalize">{log.action.replace('_', ' ')}</h6>
+                              {log.fromStatus && log.toStatus && (
+                                <p className="mb-1 small text-muted">
+                                  Status changed: <Badge bg="secondary">{log.fromStatus}</Badge>{' '}
+                                  → <Badge bg="success">{log.toStatus}</Badge>
+                                </p>
+                              )}
+                              {log.notes && <p className="mb-1 small">{log.notes}</p>}
+                              <p className="mb-0 small text-muted">
+                                By: <strong>{log.performedByName || log.performedBy?.name || 'System'}</strong>
+                              </p>
+                            </div>
+                            <small className="text-muted">
+                              {new Date(log.createdAt).toLocaleString()}
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </Card.Body>
             </Card>

@@ -44,13 +44,21 @@ const InvoicePage = () => {
       const response = await api.get(`/invoices/${orderId}/download`, {
         responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Check if response is PDF or HTML based on content type
+      const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
+      const isPDF = contentType.includes('application/pdf');
+      const extension = isPDF ? 'pdf' : 'html';
+      
+      const blob = new Blob([response.data], { type: contentType || (isPDF ? 'application/pdf' : 'text/html') });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `invoice-${orderId}.html`);
+      link.setAttribute('download', `invoice-${orderId}.${extension}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       setError(error.message || 'Failed to download invoice');
     }

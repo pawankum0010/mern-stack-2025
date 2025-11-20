@@ -57,15 +57,37 @@ const OrdersPage = () => {
     return <Badge bg={variants[status] || 'secondary'}>{status.toUpperCase()}</Badge>;
   };
 
+  const handleViewInvoice = async (orderId) => {
+    try {
+      const response = await api.get(`/invoices/${orderId}/html`, {
+        responseType: 'text',
+      });
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(response.data);
+        newWindow.document.close();
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || error.message || 'Failed to load invoice');
+    }
+  };
+
   const handleDownloadInvoice = async (orderId, orderNumber) => {
     try {
       const response = await api.get(`/invoices/${orderId}/download`, {
         responseType: 'blob',
       });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      
+      // Check if response is PDF or HTML based on content type
+      const contentType = response.headers['content-type'] || response.headers['Content-Type'] || '';
+      const isPDF = contentType.includes('application/pdf');
+      const extension = isPDF ? 'pdf' : 'html';
+      
+      const blob = new Blob([response.data], { type: contentType || (isPDF ? 'application/pdf' : 'text/html') });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `invoice-${orderNumber || orderId}.html`);
+      link.setAttribute('download', `invoice-${orderNumber || orderId}.${extension}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -153,12 +175,12 @@ const OrdersPage = () => {
                             >
                               <FiEye />
                             </Button>
-                            {order.status === 'approved' && (
+                            {order.status !== 'pending' && order.status !== 'cancelled' && (
                               <>
                                 <Button
                                   size="sm"
                                   variant="outline-success"
-                                  onClick={() => navigate(`/invoices/${order._id}`)}
+                                  onClick={() => handleViewInvoice(order._id)}
                                   title="View Invoice"
                                   className="me-1"
                                 >

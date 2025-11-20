@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const Order = require('../models/order.model');
 const Cart = require('../models/cart.model');
 const Product = require('../models/product.model');
+const OrderActivityLog = require('../models/orderActivityLog.model');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendError, sendNotFound } = require('../utils/response');
 
@@ -10,7 +11,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const { shippingAddress, paymentMethod, notes, tax = 0, shipping = 0 } = req.body;
+  const { shippingAddress, billingAddress, gstNumber, paymentMethod, notes, tax = 0, shipping = 0 } = req.body;
 
   if (!shippingAddress || !shippingAddress.line1 || !shippingAddress.city) {
     return sendError(res, {
@@ -74,8 +75,21 @@ exports.createOrder = asyncHandler(async (req, res) => {
     shipping: Number(shipping),
     total,
     shippingAddress,
+    billingAddress,
+    gstNumber,
     paymentMethod: paymentMethod || 'cash',
     notes,
+  });
+
+  // Log order creation
+  const User = require('../models/user.model');
+  const user = await User.findById(userId);
+  await OrderActivityLog.create({
+    order: order._id,
+    action: 'created',
+    performedBy: userId,
+    performedByName: user?.name || user?.email || 'System',
+    notes: 'Order created by customer',
   });
 
   // Update product stock
@@ -205,6 +219,13 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     });
   }
 
+  // Get current order to track status change
+  const currentOrder = await Order.findById(id);
+  if (!currentOrder) {
+    return sendNotFound(res, { message: 'Order not found' });
+  }
+
+  const fromStatus = currentOrder.status;
   const updateData = { status };
   if (notes) {
     updateData.notes = notes;
@@ -223,13 +244,67 @@ exports.updateOrderStatus = asyncHandler(async (req, res) => {
     .populate('items.product', 'name images')
     .populate('approvedBy', 'name email');
 
-  if (!order) {
-    return sendNotFound(res, { message: 'Order not found' });
-  }
+  // Log the status change
+  const User = require('../models/user.model');
+  const performer = await User.findById(req.user.id);
+  const actionMap = {
+    approved: 'approved',
+    processing: 'processing',
+    shipped: 'shipped',
+    delivered: 'delivered',
+    cancelled: 'cancelled',
+  };
+
+  await OrderActivityLog.create({
+    order: order._id,
+    action: actionMap[status] || 'status_changed',
+    fromStatus,
+    toStatus: status,
+    performedBy: req.user.id,
+    performedByName: performer?.name || performer?.email || 'System',
+    notes: notes || `Order status changed from ${fromStatus} to ${status}`,
+  });
 
   sendSuccess(res, {
     data: order,
     message: 'Order status updated successfully',
+  });
+});
+
+exports.getOrderActivityLogs = asyncHandler(async (req, res) => {
+  const { id: orderId } = req.params;
+  const requesterRole = req.requesterRole || (typeof req.user.role === 'string' 
+    ? req.user.role.toLowerCase() 
+    : req.user.role?.name?.toLowerCase() || '');
+
+  if (!isValidObjectId(orderId)) {
+    return sendError(res, { message: 'Invalid order id', statusCode: 400 });
+  }
+
+  // Check if user has access to this order
+  const order = await Order.findById(orderId);
+  if (!order) {
+    return sendNotFound(res, { message: 'Order not found' });
+  }
+
+  // Customers can only see their own order logs
+  if (requesterRole === 'customer' || requesterRole === 'support') {
+    if (order.user.toString() !== req.user.id) {
+      return sendError(res, {
+        message: 'You do not have permission to view this order activity',
+        statusCode: 403,
+      });
+    }
+  }
+
+  const logs = await OrderActivityLog.find({ order: orderId })
+    .populate('performedBy', 'name email')
+    .sort({ createdAt: -1 })
+    .lean();
+
+  sendSuccess(res, {
+    data: logs,
+    message: 'Order activity logs retrieved successfully',
   });
 });
 

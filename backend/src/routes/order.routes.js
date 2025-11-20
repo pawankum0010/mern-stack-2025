@@ -5,6 +5,7 @@ const {
   getOrders,
   getOrderById,
   updateOrderStatus,
+  getOrderActivityLogs,
   deleteOrder,
 } = require('../controllers/order.controller');
 const authenticate = require('../middlewares/authenticate');
@@ -17,6 +18,7 @@ router.use(authenticate);
 router.post('/', createOrder);
 router.get('/', getOrders);
 router.get('/:id', getOrderById);
+router.get('/:id/activity-logs', getOrderActivityLogs);
 router.put('/:id/status', authorizeRoles('superadmin', 'admin'), updateOrderStatus);
 router.delete('/:id', authorizeRoles('superadmin'), deleteOrder);
 

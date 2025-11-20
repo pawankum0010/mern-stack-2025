@@ -34,6 +34,16 @@ const CheckoutPage = () => {
       postalCode: user?.address?.postalCode || '',
       country: user?.address?.country || '',
     },
+    billingAddress: {
+      line1: user?.address?.line1 || '',
+      line2: user?.address?.line2 || '',
+      city: user?.address?.city || '',
+      state: user?.address?.state || '',
+      postalCode: user?.address?.postalCode || '',
+      country: user?.address?.country || '',
+    },
+    gstNumber: '',
+    useBillingAsShipping: true,
     paymentMethod: 'cash',
     tax: 0,
     shipping: 0,
@@ -61,7 +71,7 @@ const CheckoutPage = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     if (name.startsWith('shippingAddress.')) {
       const field = name.split('.')[1];
       setFormData((prev) => ({
@@ -70,6 +80,21 @@ const CheckoutPage = () => {
           ...prev.shippingAddress,
           [field]: value,
         },
+      }));
+    } else if (name.startsWith('billingAddress.')) {
+      const field = name.split('.')[1];
+      setFormData((prev) => ({
+        ...prev,
+        billingAddress: {
+          ...prev.billingAddress,
+          [field]: value,
+        },
+      }));
+    } else if (name === 'useBillingAsShipping') {
+      setFormData((prev) => ({
+        ...prev,
+        useBillingAsShipping: checked,
+        shippingAddress: checked ? prev.billingAddress : prev.shippingAddress,
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
@@ -91,7 +116,13 @@ const CheckoutPage = () => {
     setSubmitting(true);
 
     try {
-      const { data } = await api.post('/orders', formData);
+      const orderData = {
+        ...formData,
+        billingAddress: formData.useBillingAsShipping ? formData.shippingAddress : formData.billingAddress,
+      };
+      delete orderData.useBillingAsShipping;
+      
+      const { data } = await api.post('/orders', orderData);
       refreshCart(); // Clear cart count after order
       if (data?.data?._id) {
         navigate(`/orders/${data.data._id}`);
@@ -226,6 +257,113 @@ const CheckoutPage = () => {
                         />
                       </Form.Group>
                     </Col>
+                  </Row>
+                </Form>
+              </Card.Body>
+            </Card>
+            <Card className="mt-3">
+              <Card.Header>
+                <Card.Title className="mb-0">Billing Information</Card.Title>
+              </Card.Header>
+              <Card.Body>
+                <Form>
+                  <Row className="g-3">
+                    <Col sm={12}>
+                      <Form.Check
+                        type="checkbox"
+                        id="useBillingAsShipping"
+                        name="useBillingAsShipping"
+                        label="Use shipping address as billing address"
+                        checked={formData.useBillingAsShipping}
+                        onChange={handleChange}
+                      />
+                    </Col>
+                    {!formData.useBillingAsShipping && (
+                      <>
+                        <Col sm={12}>
+                          <Form.Group controlId="billingLine1">
+                            <Form.Label>Billing Address Line 1</Form.Label>
+                            <Form.Control
+                              name="billingAddress.line1"
+                              value={formData.billingAddress.line1}
+                              onChange={handleChange}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={12}>
+                          <Form.Group controlId="billingLine2">
+                            <Form.Label>Billing Address Line 2</Form.Label>
+                            <Form.Control
+                              name="billingAddress.line2"
+                              value={formData.billingAddress.line2}
+                              onChange={handleChange}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={12} md={6}>
+                          <Form.Group controlId="billingCity">
+                            <Form.Label>City</Form.Label>
+                            <Form.Control
+                              name="billingAddress.city"
+                              value={formData.billingAddress.city}
+                              onChange={handleChange}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={12} md={6}>
+                          <Form.Group controlId="billingState">
+                            <Form.Label>State</Form.Label>
+                            <Form.Control
+                              name="billingAddress.state"
+                              value={formData.billingAddress.state}
+                              onChange={handleChange}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={12} md={6}>
+                          <Form.Group controlId="billingPostalCode">
+                            <Form.Label>Postal Code</Form.Label>
+                            <Form.Control
+                              name="billingAddress.postalCode"
+                              value={formData.billingAddress.postalCode}
+                              onChange={handleChange}
+                            />
+                          </Form.Group>
+                        </Col>
+                        <Col sm={12} md={6}>
+                          <Form.Group controlId="billingCountry">
+                            <Form.Label>Country</Form.Label>
+                            <Form.Control
+                              name="billingAddress.country"
+                              value={formData.billingAddress.country}
+                              onChange={handleChange}
+                            />
+                          </Form.Group>
+                        </Col>
+                      </>
+                    )}
+                    <Col sm={12}>
+                      <Form.Group controlId="gstNumber">
+                        <Form.Label>GST Number (Optional)</Form.Label>
+                        <Form.Control
+                          name="gstNumber"
+                          value={formData.gstNumber}
+                          onChange={handleChange}
+                          placeholder="GSTIN-XXXXXXXXXX"
+                        />
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                </Form>
+              </Card.Body>
+            </Card>
+            <Card className="mt-3">
+              <Card.Header>
+                <Card.Title className="mb-0">Payment & Additional Information</Card.Title>
+              </Card.Header>
+              <Card.Body>
+                <Form onSubmit={handleSubmit}>
+                  <Row className="g-3">
                     <Col sm={12} md={6}>
                       <Form.Group controlId="paymentMethod">
                         <Form.Label>Payment Method</Form.Label>
