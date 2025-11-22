@@ -1,0 +1,16 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Simplified logo for favicon -->
+  <g>
+    <!-- Green S -->
+    <path d="M12 12 Q14 8 16 10 Q18 12 17 14 Q16 16 14 16 Q12 16 11 14 Q10 12 11 10 Q12 8 12 12 Z" fill="#28a745" />
+    <path d="M12 18 Q10 20 11 22 Q12 24 14 24 Q16 24 17 22 Q18 20 17 18 Q16 16 14 18 Q12 18 12 18 Z" fill="#28a745" />
+    
+    <!-- Red C -->
+    <path d="M20 8 Q24 6 26 10 Q28 14 27 17 Q26 20 23 20 Q21 20 20 17 Q19 14 20 12 Q21 10 23 10 Q25 10 26 12" stroke="#dc3545" stroke-width="2" fill="none" stroke-linecap="round" />
+    
+    <!-- Small chili pepper -->
+    <ellipse cx="26" cy="12" rx="2" ry="3" fill="#dc3545" />
+    <path d="M26 10 Q25.5 9 26 9 Q26.5 9 26 10" fill="#28a745" />
+  </g>
+</svg>
+

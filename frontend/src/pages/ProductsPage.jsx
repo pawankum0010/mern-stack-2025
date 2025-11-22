@@ -32,7 +32,20 @@ const initialFormState = {
   status: 'active',
   featured: false,
   weight: '',
+  weightUnit: 'kg',
   vendor: '',
+  brand: '',
+  color: '',
+  size: '',
+  material: '',
+  dimensionsLength: '',
+  dimensionsWidth: '',
+  dimensionsHeight: '',
+  dimensionUnit: 'cm',
+  warranty: '',
+  shippingInfo: '',
+  returnPolicy: '',
+  specifications: '',
 };
 
 const ProductsPage = () => {
@@ -43,7 +56,6 @@ const ProductsPage = () => {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loadingMasters, setLoadingMasters] = useState(false);
 
   // ui state
   const [formState, setFormState] = useState(initialFormState);
@@ -98,10 +110,7 @@ const ProductsPage = () => {
   };
 
   useEffect(() => {
-    setLoadingMasters(true);
-    Promise.all([fetchVendors(), fetchCategories()]).finally(() => {
-      setLoadingMasters(false);
-    });
+    Promise.all([fetchVendors(), fetchCategories()]);
   }, []);
 
   useEffect(() => {
@@ -164,7 +173,28 @@ const ProductsPage = () => {
       status: formState.status,
       featured: formState.featured,
       weight: formState.weight ? Number(formState.weight) : undefined,
+      weightUnit: formState.weightUnit,
       vendor: formState.vendor || undefined,
+      brand: formState.brand || undefined,
+      color: formState.color || undefined,
+      size: formState.size || undefined,
+      material: formState.material || undefined,
+      dimensions: (formState.dimensionsLength || formState.dimensionsWidth || formState.dimensionsHeight) 
+        ? {
+            length: formState.dimensionsLength ? Number(formState.dimensionsLength) : undefined,
+            width: formState.dimensionsWidth ? Number(formState.dimensionsWidth) : undefined,
+            height: formState.dimensionsHeight ? Number(formState.dimensionsHeight) : undefined,
+          }
+        : undefined,
+      dimensionUnit: formState.dimensionUnit,
+      warranty: formState.warranty || undefined,
+      shippingInfo: formState.shippingInfo || undefined,
+      returnPolicy: formState.returnPolicy || undefined,
+      specifications: formState.specifications 
+        ? (formState.specifications.trim().startsWith('{') || formState.specifications.trim().startsWith('['))
+          ? JSON.parse(formState.specifications)
+          : formState.specifications
+        : undefined,
     };
 
     const isUpdate = isEditing && editingProductId;
@@ -209,7 +239,24 @@ const ProductsPage = () => {
       status: product.status || 'active',
       featured: product.featured || false,
       weight: product.weight || '',
+      weightUnit: product.weightUnit || 'kg',
       vendor: product.vendor?._id || product.vendor || '',
+      brand: product.brand || '',
+      color: product.color || '',
+      size: product.size || '',
+      material: product.material || '',
+      dimensionsLength: product.dimensions?.length || '',
+      dimensionsWidth: product.dimensions?.width || '',
+      dimensionsHeight: product.dimensions?.height || '',
+      dimensionUnit: product.dimensionUnit || 'cm',
+      warranty: product.warranty || '',
+      shippingInfo: product.shippingInfo || '',
+      returnPolicy: product.returnPolicy || '',
+      specifications: typeof product.specifications === 'string' 
+        ? product.specifications 
+        : product.specifications 
+          ? JSON.stringify(product.specifications, null, 2) 
+          : '',
     });
     setIsDrawerOpen(true);
   };
@@ -528,17 +575,31 @@ const ProductsPage = () => {
             </Col>
             <Col sm={12} md={6}>
               <Form.Group controlId="weight">
-                <Form.Label>Weight (kg)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  name="weight"
-                  value={formState.weight}
-                  onChange={handleChange}
-                  placeholder="0.00"
-                  disabled={!canManageProducts}
-                />
+                <Form.Label>Weight</Form.Label>
+                <div className="d-flex gap-2">
+                  <Form.Control
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="weight"
+                    value={formState.weight}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    disabled={!canManageProducts}
+                  />
+                  <Form.Select
+                    name="weightUnit"
+                    value={formState.weightUnit}
+                    onChange={handleChange}
+                    disabled={!canManageProducts}
+                    style={{ width: '100px' }}
+                  >
+                    <option value="kg">kg</option>
+                    <option value="g">g</option>
+                    <option value="lb">lb</option>
+                    <option value="oz">oz</option>
+                  </Form.Select>
+                </div>
               </Form.Group>
             </Col>
             <Col sm={12} md={6}>
@@ -557,6 +618,175 @@ const ProductsPage = () => {
                     </option>
                   ))}
                 </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col sm={12} md={6}>
+              <Form.Group controlId="brand">
+                <Form.Label>Brand</Form.Label>
+                <Form.Control
+                  name="brand"
+                  value={formState.brand}
+                  onChange={handleChange}
+                  placeholder="Brand name"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12} md={6}>
+              <Form.Group controlId="color">
+                <Form.Label>Color</Form.Label>
+                <Form.Control
+                  name="color"
+                  value={formState.color}
+                  onChange={handleChange}
+                  placeholder="Color"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12} md={6}>
+              <Form.Group controlId="size">
+                <Form.Label>Size</Form.Label>
+                <Form.Control
+                  name="size"
+                  value={formState.size}
+                  onChange={handleChange}
+                  placeholder="Size"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12} md={6}>
+              <Form.Group controlId="material">
+                <Form.Label>Material</Form.Label>
+                <Form.Control
+                  name="material"
+                  value={formState.material}
+                  onChange={handleChange}
+                  placeholder="Material"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12}>
+              <hr />
+              <h6>Dimensions</h6>
+            </Col>
+            <Col sm={12} md={4}>
+              <Form.Group controlId="dimensionsLength">
+                <Form.Label>Length</Form.Label>
+                <Form.Control
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="dimensionsLength"
+                  value={formState.dimensionsLength}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12} md={4}>
+              <Form.Group controlId="dimensionsWidth">
+                <Form.Label>Width</Form.Label>
+                <Form.Control
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="dimensionsWidth"
+                  value={formState.dimensionsWidth}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12} md={4}>
+              <Form.Group controlId="dimensionsHeight">
+                <Form.Label>Height</Form.Label>
+                <div className="d-flex gap-2">
+                  <Form.Control
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="dimensionsHeight"
+                    value={formState.dimensionsHeight}
+                    onChange={handleChange}
+                    placeholder="0.00"
+                    disabled={!canManageProducts}
+                  />
+                  <Form.Select
+                    name="dimensionUnit"
+                    value={formState.dimensionUnit}
+                    onChange={handleChange}
+                    disabled={!canManageProducts}
+                    style={{ width: '100px' }}
+                  >
+                    <option value="cm">cm</option>
+                    <option value="m">m</option>
+                    <option value="in">in</option>
+                    <option value="ft">ft</option>
+                  </Form.Select>
+                </div>
+              </Form.Group>
+            </Col>
+            <Col sm={12}>
+              <hr />
+              <h6>Additional Details</h6>
+            </Col>
+            <Col sm={12}>
+              <Form.Group controlId="warranty">
+                <Form.Label>Warranty</Form.Label>
+                <Form.Control
+                  name="warranty"
+                  value={formState.warranty}
+                  onChange={handleChange}
+                  placeholder="e.g., 1 year warranty"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12}>
+              <Form.Group controlId="shippingInfo">
+                <Form.Label>Shipping Information</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  name="shippingInfo"
+                  value={formState.shippingInfo}
+                  onChange={handleChange}
+                  placeholder="Shipping details"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12}>
+              <Form.Group controlId="returnPolicy">
+                <Form.Label>Return Policy</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  name="returnPolicy"
+                  value={formState.returnPolicy}
+                  onChange={handleChange}
+                  placeholder="Return policy details"
+                  disabled={!canManageProducts}
+                />
+              </Form.Group>
+            </Col>
+            <Col sm={12}>
+              <Form.Group controlId="specifications">
+                <Form.Label>Specifications (JSON or plain text)</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={5}
+                  name="specifications"
+                  value={formState.specifications}
+                  onChange={handleChange}
+                  placeholder='{"key": "value"} or plain text'
+                  disabled={!canManageProducts}
+                />
               </Form.Group>
             </Col>
             <Col sm={12}>

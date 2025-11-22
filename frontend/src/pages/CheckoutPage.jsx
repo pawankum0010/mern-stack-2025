@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert,
+  Badge,
   Button,
   Card,
   Col,
@@ -10,6 +11,7 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap';
+import { FiCheck } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -25,6 +27,11 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [savedAddresses, setSavedAddresses] = useState({ shipping: [], billing: [] });
+  const [selectedShippingAddress, setSelectedShippingAddress] = useState('');
+  const [selectedBillingAddress, setSelectedBillingAddress] = useState('');
+  const [useManualShipping, setUseManualShipping] = useState(false);
+  const [useManualBilling, setUseManualBilling] = useState(false);
   const [formData, setFormData] = useState({
     shippingAddress: {
       line1: user?.address?.line1 || '',
@@ -56,6 +63,7 @@ const CheckoutPage = () => {
       return;
     }
     fetchCart();
+    fetchAddresses();
   }, [isAuthenticated, navigate]);
 
   const fetchCart = async () => {
@@ -67,6 +75,118 @@ const CheckoutPage = () => {
       setError(error.message || 'Failed to load cart');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAddresses = async () => {
+    try {
+      const { data } = await api.get('/addresses');
+      const addresses = data?.data || [];
+      const shipping = addresses.filter((addr) => addr.type === 'shipping');
+      const billing = addresses.filter((addr) => addr.type === 'billing');
+      
+      setSavedAddresses({ shipping, billing });
+      
+      // Auto-select default addresses if available
+      const defaultShipping = shipping.find((addr) => addr.isDefault);
+      const defaultBilling = billing.find((addr) => addr.isDefault);
+      
+      if (defaultShipping) {
+        setSelectedShippingAddress(defaultShipping._id);
+        populateShippingAddress(defaultShipping);
+      }
+      
+      if (defaultBilling) {
+        setSelectedBillingAddress(defaultBilling._id);
+        populateBillingAddress(defaultBilling);
+      }
+    } catch (error) {
+      console.error('Failed to fetch addresses:', error);
+      // Don't show error, just allow manual entry
+    }
+  };
+
+  const populateShippingAddress = (address) => {
+    setFormData((prev) => ({
+      ...prev,
+      shippingAddress: {
+        line1: address.line1 || '',
+        line2: address.line2 || '',
+        city: address.city || '',
+        state: address.state || '',
+        postalCode: address.postalCode || '',
+        country: address.country || '',
+      },
+    }));
+  };
+
+  const populateBillingAddress = (address) => {
+    setFormData((prev) => ({
+      ...prev,
+      billingAddress: {
+        line1: address.line1 || '',
+        line2: address.line2 || '',
+        city: address.city || '',
+        state: address.state || '',
+        postalCode: address.postalCode || '',
+        country: address.country || '',
+      },
+    }));
+  };
+
+  const handleShippingAddressSelect = (e) => {
+    const addressId = e.target.value;
+    setSelectedShippingAddress(addressId);
+    
+    if (addressId === 'manual') {
+      setUseManualShipping(true);
+      setFormData((prev) => ({
+        ...prev,
+        shippingAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+      }));
+    } else if (addressId === 'new') {
+      navigate('/addresses');
+    } else {
+      setUseManualShipping(false);
+      const address = savedAddresses.shipping.find((addr) => addr._id === addressId);
+      if (address) {
+        populateShippingAddress(address);
+      }
+    }
+  };
+
+  const handleBillingAddressSelect = (e) => {
+    const addressId = e.target.value;
+    setSelectedBillingAddress(addressId);
+    
+    if (addressId === 'manual') {
+      setUseManualBilling(true);
+      setFormData((prev) => ({
+        ...prev,
+        billingAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+      }));
+    } else if (addressId === 'new') {
+      navigate('/addresses');
+    } else {
+      setUseManualBilling(false);
+      const address = savedAddresses.billing.find((addr) => addr._id === addressId);
+      if (address) {
+        populateBillingAddress(address);
+      }
     }
   };
 
@@ -94,8 +214,12 @@ const CheckoutPage = () => {
       setFormData((prev) => ({
         ...prev,
         useBillingAsShipping: checked,
-        shippingAddress: checked ? prev.billingAddress : prev.shippingAddress,
+        billingAddress: checked ? prev.shippingAddress : prev.billingAddress,
       }));
+      if (checked) {
+        setSelectedBillingAddress('');
+        setUseManualBilling(false);
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
@@ -193,16 +317,42 @@ const CheckoutPage = () => {
                 <Form onSubmit={handleSubmit}>
                   <Row className="g-3">
                     <Col sm={12}>
-                      <Form.Group controlId="line1">
-                        <Form.Label>Address Line 1 *</Form.Label>
-                        <Form.Control
-                          name="shippingAddress.line1"
-                          value={formData.shippingAddress.line1}
-                          onChange={handleChange}
-                          required
-                        />
+                      <Form.Group controlId="selectShippingAddress">
+                        <Form.Label>Select Shipping Address</Form.Label>
+                        <Form.Select
+                          value={selectedShippingAddress}
+                          onChange={handleShippingAddressSelect}
+                        >
+                          <option value="">Choose an address...</option>
+                          {savedAddresses.shipping.map((address) => (
+                            <option key={address._id} value={address._id}>
+                              {address.label} {address.isDefault && '(Default)'} - {address.line1}, {address.city}
+                            </option>
+                          ))}
+                          <option value="new">+ Add New Address</option>
+                          <option value="manual">Enter Address Manually</option>
+                        </Form.Select>
+                        {selectedShippingAddress && savedAddresses.shipping.find((a) => a._id === selectedShippingAddress)?.isDefault && (
+                          <Badge bg="success" className="mt-2">
+                            <FiCheck className="me-1" />
+                            Default Address
+                          </Badge>
+                        )}
                       </Form.Group>
                     </Col>
+                    {(useManualShipping || !selectedShippingAddress) && (
+                      <>
+                        <Col sm={12}>
+                          <Form.Group controlId="line1">
+                            <Form.Label>Address Line 1 *</Form.Label>
+                            <Form.Control
+                              name="shippingAddress.line1"
+                              value={formData.shippingAddress.line1}
+                              onChange={handleChange}
+                              required
+                            />
+                          </Form.Group>
+                        </Col>
                     <Col sm={12}>
                       <Form.Group controlId="line2">
                         <Form.Label>Address Line 2</Form.Label>
@@ -257,6 +407,8 @@ const CheckoutPage = () => {
                         />
                       </Form.Group>
                     </Col>
+                      </>
+                    )}
                   </Row>
                 </Form>
               </Card.Body>
@@ -281,15 +433,45 @@ const CheckoutPage = () => {
                     {!formData.useBillingAsShipping && (
                       <>
                         <Col sm={12}>
-                          <Form.Group controlId="billingLine1">
-                            <Form.Label>Billing Address Line 1</Form.Label>
-                            <Form.Control
-                              name="billingAddress.line1"
-                              value={formData.billingAddress.line1}
-                              onChange={handleChange}
-                            />
+                          <Form.Group controlId="selectBillingAddress">
+                            <Form.Label>Select Billing Address</Form.Label>
+                            <Form.Select
+                              value={selectedBillingAddress}
+                              onChange={handleBillingAddressSelect}
+                              disabled={formData.useBillingAsShipping}
+                            >
+                              <option value="">Choose an address...</option>
+                              {savedAddresses.billing.map((address) => (
+                                <option key={address._id} value={address._id}>
+                                  {address.label} {address.isDefault && '(Default)'} - {address.line1}, {address.city}
+                                </option>
+                              ))}
+                              <option value="new">+ Add New Address</option>
+                              <option value="manual">Enter Address Manually</option>
+                            </Form.Select>
+                            {formData.useBillingAsShipping && (
+                              <small className="text-muted d-block mt-1">Using shipping address as billing address</small>
+                            )}
+                            {!formData.useBillingAsShipping && selectedBillingAddress && savedAddresses.billing.find((a) => a._id === selectedBillingAddress)?.isDefault && (
+                              <Badge bg="success" className="mt-2">
+                                <FiCheck className="me-1" />
+                                Default Address
+                              </Badge>
+                            )}
                           </Form.Group>
                         </Col>
+                        {!formData.useBillingAsShipping && (useManualBilling || !selectedBillingAddress) && (
+                          <>
+                            <Col sm={12}>
+                              <Form.Group controlId="billingLine1">
+                                <Form.Label>Billing Address Line 1</Form.Label>
+                                <Form.Control
+                                  name="billingAddress.line1"
+                                  value={formData.billingAddress.line1}
+                                  onChange={handleChange}
+                                />
+                              </Form.Group>
+                            </Col>
                         <Col sm={12}>
                           <Form.Group controlId="billingLine2">
                             <Form.Label>Billing Address Line 2</Form.Label>
@@ -340,6 +522,8 @@ const CheckoutPage = () => {
                             />
                           </Form.Group>
                         </Col>
+                          </>
+                        )}
                       </>
                     )}
                     <Col sm={12}>

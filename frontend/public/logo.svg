@@ -1,0 +1,33 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Stylized S and C logo -->
+  <g>
+    <!-- Green S -->
+    <path d="M15 15 Q20 5 25 10 Q30 15 28 22 Q26 28 20 28 Q15 28 12 24 Q9 20 10 15 Q11 10 15 15 Z" fill="#28a745" />
+    <path d="M15 30 Q10 35 12 40 Q14 45 18 45 Q23 45 26 40 Q29 35 28 30 Q27 25 22 28 Q18 30 15 30 Z" fill="#28a745" />
+    
+    <!-- Red C -->
+    <path d="M35 10 Q45 5 50 15 Q55 25 52 32 Q49 38 42 38 Q38 38 36 34 Q34 30 36 26 Q38 22 42 22 Q46 22 48 26" stroke="#dc3545" stroke-width="3" fill="none" stroke-linecap="round" />
+    <path d="M48 26 Q48 20 50 18 Q52 16 54 16 Q56 16 57 18 Q58 20 57 22 Q56 24 54 24 Q52 24 50 22" fill="#dc3545" />
+    
+    <!-- White diagonal stripe between S and C -->
+    <line x1="28" y1="12" x2="38" y2="28" stroke="white" stroke-width="2" />
+    
+    <!-- Small chili pepper in the C cutout -->
+    <g transform="translate(52, 16)">
+      <ellipse cx="4" cy="6" rx="2.5" ry="4" fill="#dc3545" />
+      <path d="M4 2 Q3 0 4 0 Q5 0 4 2" fill="#28a745" stroke="#28a745" stroke-width="0.5" />
+      <path d="M4 2 Q4.5 1 5 1" stroke="#dc3545" stroke-width="0.5" fill="none" />
+    </g>
+  </g>
+  
+  <!-- Soft Chilli text -->
+  <text x="60" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="bold">
+    <tspan fill="#28a745">S</tspan>
+    <tspan fill="#333">oft</tspan>
+  </text>
+  <text x="60" y="50" font-family="Arial, sans-serif" font-size="18" font-weight="bold">
+    <tspan fill="#dc3545">C</tspan>
+    <tspan fill="#333">hilli</tspan>
+  </text>
+</svg>
+

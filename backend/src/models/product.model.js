@@ -63,15 +63,57 @@ const productSchema = new mongoose.Schema(
       type: Number,
       min: [0, 'Weight cannot be negative'],
     },
+    weightUnit: {
+      type: String,
+      enum: ['kg', 'g', 'lb', 'oz'],
+      default: 'kg',
+    },
     dimensions: {
       length: { type: Number, min: 0 },
       width: { type: Number, min: 0 },
       height: { type: Number, min: 0 },
     },
+    dimensionUnit: {
+      type: String,
+      enum: ['cm', 'm', 'in', 'ft'],
+      default: 'cm',
+    },
     vendor: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Vendor',
       index: true,
+    },
+    brand: {
+      type: String,
+      trim: true,
+    },
+    color: {
+      type: String,
+      trim: true,
+    },
+    size: {
+      type: String,
+      trim: true,
+    },
+    material: {
+      type: String,
+      trim: true,
+    },
+    specifications: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    warranty: {
+      type: String,
+      trim: true,
+    },
+    shippingInfo: {
+      type: String,
+      trim: true,
+    },
+    returnPolicy: {
+      type: String,
+      trim: true,
     },
     seo: {
       title: { type: String, trim: true },

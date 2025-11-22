@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card, Col, Container, Form, Row, Spinner, Alert } from 'react-bootstrap';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 import AppNavbar from '../components/AppNavbar';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,6 @@ const ProductListingPage = () => {
   const cartContext = useCart();
   const { refreshCart } = cartContext;
   const navigate = useNavigate();
-  const location = useLocation();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [addingToCart, setAddingToCart] = useState(null);
@@ -64,6 +63,7 @@ const ProductListingPage = () => {
 
   useEffect(() => {
     fetchProducts(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const handleFilterChange = (name, value) => {
@@ -256,7 +256,9 @@ const ProductListingPage = () => {
                               backgroundSize: 'cover',
                               backgroundPosition: 'center',
                               backgroundColor: '#f8f9fa',
+                              cursor: 'pointer',
                             }}
+                            onClick={() => navigate(`/products/${product._id}`)}
                           />
                         )}
                         <Card.Body className="d-flex flex-column">
@@ -276,7 +278,13 @@ const ProductListingPage = () => {
                               </Badge>
                             )}
                           </div>
-                          <Card.Title className="h6">{product.name}</Card.Title>
+                          <Card.Title
+                            className="h6"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => navigate(`/products/${product._id}`)}
+                          >
+                            {product.name}
+                          </Card.Title>
                           {product.description && (
                             <Card.Text className="text-muted small flex-grow-1">
                               {product.description.length > 100

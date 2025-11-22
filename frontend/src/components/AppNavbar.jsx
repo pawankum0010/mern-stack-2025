@@ -21,8 +21,9 @@ const AppNavbar = () => {
   return (
     <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
       <Container fluid>
-        <Navbar.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          {isAdmin ? 'MERN Admin Panel' : 'MERN Store'}
+        <Navbar.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="/logo.svg" alt="Soft Chilli" style={{ height: '40px' }} />
+          {isAdmin && <span className="d-none d-md-inline">Admin Panel</span>}
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -36,14 +37,17 @@ const AppNavbar = () => {
                 <Nav.Link onClick={() => navigate('/admin/categories')}>Categories</Nav.Link>
               </>
             )}
-            {user && (
-              <>
-                <Nav.Link onClick={() => navigate('/orders')}>My Orders</Nav.Link>
-                {isCustomer && (
-                  <Nav.Link onClick={() => navigate('/profile')}>Profile</Nav.Link>
-                )}
-              </>
-            )}
+                  {user && (
+                    <>
+                      <Nav.Link onClick={() => navigate('/orders')}>My Orders</Nav.Link>
+                      {isCustomer && (
+                        <>
+                          <Nav.Link onClick={() => navigate('/profile')}>Profile</Nav.Link>
+                          <Nav.Link onClick={() => navigate('/addresses')}>Addresses</Nav.Link>
+                        </>
+                      )}
+                    </>
+                  )}
           </Nav>
           {!isAdmin && (
             <Nav>

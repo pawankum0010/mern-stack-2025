@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductListingPage from './pages/ProductListingPage';
+import ProductDetailsPage from './pages/ProductDetailsPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrdersPage from './pages/OrdersPage';
@@ -13,6 +14,7 @@ import InvoicePage from './pages/InvoicePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
+import AddressesPage from './pages/AddressesPage';
 import VendorsPage from './pages/VendorsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
@@ -26,6 +28,7 @@ function App() {
         <BrowserRouter>
         <Routes>
           <Route path="/" element={<ProductListingPage />} />
+          <Route path="/products/:id" element={<ProductDetailsPage />} />
           <Route path="/admin" element={<DashboardPage />} />
           <Route path="/admin/products" element={<ProductsPage />} />
           <Route path="/admin/vendors" element={<VendorsPage />} />
@@ -36,6 +39,7 @@ function App() {
           <Route path="/orders/:id" element={<OrderDetailPage />} />
           <Route path="/invoices/:id" element={<InvoicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/addresses" element={<AddressesPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />

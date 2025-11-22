@@ -5,7 +5,7 @@
 2. npm install -g nodemon
 
 # Execute program
-1. nodemon [backend]
+1. nodemon, npm run dev [backend]
 1. npm start [fornend]
 
 # Install React
