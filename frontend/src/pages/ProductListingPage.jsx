@@ -252,7 +252,11 @@ const ProductListingPage = () => {
                             className="product-image"
                             style={{
                               height: '200px',
-                              backgroundImage: `url(${product.images[0]})`,
+                              backgroundImage: `url(${
+                                product.images[0].startsWith('http')
+                                  ? product.images[0]
+                                  : `${api.defaults.baseURL.replace('/api', '')}${product.images[0]}`
+                              })`,
                               backgroundSize: 'cover',
                               backgroundPosition: 'center',
                               backgroundColor: '#f8f9fa',

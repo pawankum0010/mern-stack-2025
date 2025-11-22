@@ -163,16 +163,21 @@ const ProductDetailsPage = () => {
               <Card.Body>
                 {product.images && product.images.length > 0 ? (
                   <Carousel interval={null} variant="dark">
-                    {product.images.map((image, index) => (
-                      <Carousel.Item key={index}>
-                        <img
-                          className="d-block w-100"
-                          src={image}
-                          alt={`${product.name} ${index + 1}`}
-                          style={{ maxHeight: '500px', objectFit: 'contain' }}
-                        />
-                      </Carousel.Item>
-                    ))}
+                    {product.images.map((image, index) => {
+                      const imageUrl = image.startsWith('http')
+                        ? image
+                        : `${api.defaults.baseURL.replace('/api', '')}${image}`;
+                      return (
+                        <Carousel.Item key={index}>
+                          <img
+                            className="d-block w-100"
+                            src={imageUrl}
+                            alt={`${product.name} ${index + 1}`}
+                            style={{ maxHeight: '500px', objectFit: 'contain' }}
+                          />
+                        </Carousel.Item>
+                      );
+                    })}
                   </Carousel>
                 ) : (
                   <div

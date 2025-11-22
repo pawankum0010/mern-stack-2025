@@ -15,7 +15,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
     sku,
     category,
     tags,
-    images,
+    images: imagesFromBody,
     stock,
     status,
     featured,
@@ -39,22 +39,80 @@ exports.createProduct = asyncHandler(async (req, res) => {
     });
   }
 
+  // Handle uploaded files - map to URLs
+  let imageUrls = [];
+  if (req.files && req.files.length > 0) {
+    imageUrls = req.files.map((file) => `/uploads/products/${file.filename}`);
+  } else if (imagesFromBody) {
+    // Support both file uploads and URL strings
+    imageUrls = Array.isArray(imagesFromBody) ? imagesFromBody : [imagesFromBody];
+  }
+
+  // Parse tags if it's a string
+  let parsedTags = [];
+  if (tags) {
+    if (typeof tags === 'string') {
+      parsedTags = tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
+    } else if (Array.isArray(tags)) {
+      parsedTags = tags;
+    }
+  }
+
+  // Parse dimensions if provided
+  let parsedDimensions = undefined;
+  if (dimensions) {
+    if (typeof dimensions === 'string') {
+      try {
+        parsedDimensions = JSON.parse(dimensions);
+      } catch (e) {
+        // If parsing fails, try to construct from separate fields
+        parsedDimensions = dimensions;
+      }
+    } else {
+      parsedDimensions = dimensions;
+    }
+  }
+
+  // Parse specifications if provided
+  let parsedSpecifications = {};
+  if (req.body.specifications) {
+    if (typeof req.body.specifications === 'string') {
+      try {
+        parsedSpecifications = JSON.parse(req.body.specifications);
+      } catch (e) {
+        parsedSpecifications = {};
+      }
+    } else {
+      parsedSpecifications = req.body.specifications;
+    }
+  }
+
   const productData = {
     name,
     description,
-    price,
-    compareAtPrice,
+    price: Number(price),
+    compareAtPrice: compareAtPrice ? Number(compareAtPrice) : undefined,
     sku,
-    category,
-    tags: Array.isArray(tags) ? tags : [],
-    images: Array.isArray(images) ? images : [],
-    stock: stock !== undefined ? stock : 0,
+    category: category || undefined,
+    tags: parsedTags,
+    images: imageUrls,
+    stock: stock !== undefined ? Number(stock) : 0,
     status: status || 'active',
-    featured: featured || false,
-    weight,
-    dimensions,
-    vendor,
-    seo,
+    featured: featured === true || featured === 'true',
+    weight: weight ? Number(weight) : undefined,
+    weightUnit: req.body.weightUnit || 'kg',
+    dimensions: parsedDimensions,
+    dimensionUnit: req.body.dimensionUnit || 'cm',
+    vendor: vendor || undefined,
+    brand: req.body.brand || undefined,
+    color: req.body.color || undefined,
+    size: req.body.size || undefined,
+    material: req.body.material || undefined,
+    specifications: parsedSpecifications,
+    warranty: req.body.warranty || undefined,
+    shippingInfo: req.body.shippingInfo || undefined,
+    returnPolicy: req.body.returnPolicy || undefined,
+    seo: seo ? (typeof seo === 'string' ? JSON.parse(seo) : seo) : undefined,
   };
 
   const product = await Product.create(productData);
@@ -214,33 +272,163 @@ exports.getProductById = asyncHandler(async (req, res) => {
 
 exports.updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const updates = req.body;
+  const path = require('path');
+  const fs = require('fs');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid product id', statusCode: 400 });
   }
 
-  if (updates.price !== undefined && updates.price < 0) {
-    return sendError(res, {
-      message: 'Price cannot be negative',
-      statusCode: 400,
-    });
+  // Get existing product to check for old images
+  const existingProduct = await Product.findById(id);
+  if (!existingProduct) {
+    return sendNotFound(res, { message: 'Product not found' });
   }
 
-  if (updates.stock !== undefined && updates.stock < 0) {
-    return sendError(res, {
-      message: 'Stock cannot be negative',
-      statusCode: 400,
-    });
+  const updates = { ...req.body };
+
+  // Handle uploaded files
+  if (req.files && req.files.length > 0) {
+    const newImageUrls = req.files.map((file) => `/uploads/products/${file.filename}`);
+    
+    // If new images are uploaded, replace old ones (delete old files if they exist)
+    if (updates.replaceImages !== 'false' && existingProduct.images && existingProduct.images.length > 0) {
+      const uploadsDir = path.join(__dirname, '../../uploads');
+      existingProduct.images.forEach((imageUrl) => {
+        if (imageUrl.startsWith('/uploads/')) {
+          const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
+          if (fs.existsSync(filePath)) {
+            try {
+              fs.unlinkSync(filePath);
+            } catch (err) {
+              console.error(`Error deleting old image: ${filePath}`, err);
+            }
+          }
+        }
+      });
+    }
+    
+    updates.images = newImageUrls;
+  } else if (updates.images !== undefined) {
+    // Handle explicit images array (e.g., empty array to remove all images)
+    if (Array.isArray(updates.images)) {
+      if (updates.images.length === 0) {
+        // Remove all images - delete files
+        const uploadsDir = path.join(__dirname, '../../uploads');
+        existingProduct.images.forEach((imageUrl) => {
+          if (imageUrl.startsWith('/uploads/')) {
+            const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
+            if (fs.existsSync(filePath)) {
+              try {
+                fs.unlinkSync(filePath);
+              } catch (err) {
+                console.error(`Error deleting image file: ${filePath}`, err);
+              }
+            }
+          }
+        });
+      }
+      // Set to the provided array (could be empty or array of URLs)
+      updates.images = updates.images;
+    } else if (typeof updates.images === 'string') {
+      try {
+        // Try to parse as JSON
+        const parsedImages = JSON.parse(updates.images);
+        if (Array.isArray(parsedImages)) {
+          if (parsedImages.length === 0) {
+            // Remove all images
+            const uploadsDir = path.join(__dirname, '../../uploads');
+            existingProduct.images.forEach((imageUrl) => {
+              if (imageUrl.startsWith('/uploads/')) {
+                const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
+                if (fs.existsSync(filePath)) {
+                  try {
+                    fs.unlinkSync(filePath);
+                  } catch (err) {
+                    console.error(`Error deleting image file: ${filePath}`, err);
+                  }
+                }
+              }
+            });
+          }
+          updates.images = parsedImages;
+        }
+      } catch (e) {
+        // Not JSON, keep existing images
+        delete updates.images;
+      }
+    }
+  }
+  
+  // If no images field in updates and no files uploaded, keep existing images
+  if (!updates.images && (!req.files || req.files.length === 0)) {
+    // Don't update images field - keep existing
   }
 
-  if (updates.tags && !Array.isArray(updates.tags)) {
-    updates.tags = [];
+  // Parse tags if it's a string
+  if (updates.tags) {
+    if (typeof updates.tags === 'string') {
+      updates.tags = updates.tags.split(',').map((tag) => tag.trim()).filter((tag) => tag);
+    } else if (!Array.isArray(updates.tags)) {
+      updates.tags = [];
+    }
   }
 
-  if (updates.images && !Array.isArray(updates.images)) {
-    updates.images = [];
+  // Handle other fields
+  if (updates.price !== undefined) {
+    updates.price = Number(updates.price);
+    if (updates.price < 0) {
+      return sendError(res, {
+        message: 'Price cannot be negative',
+        statusCode: 400,
+      });
+    }
   }
+
+  if (updates.stock !== undefined) {
+    updates.stock = Number(updates.stock);
+    if (updates.stock < 0) {
+      return sendError(res, {
+        message: 'Stock cannot be negative',
+        statusCode: 400,
+      });
+    }
+  }
+
+  // Parse dimensions
+  if (updates.dimensions && typeof updates.dimensions === 'string') {
+    try {
+      updates.dimensions = JSON.parse(updates.dimensions);
+    } catch (e) {
+      // Keep as is if parsing fails
+    }
+  }
+
+  // Parse specifications
+  if (updates.specifications && typeof updates.specifications === 'string') {
+    try {
+      updates.specifications = JSON.parse(updates.specifications);
+    } catch (e) {
+      updates.specifications = {};
+    }
+  }
+
+  // Parse SEO
+  if (updates.seo && typeof updates.seo === 'string') {
+    try {
+      updates.seo = JSON.parse(updates.seo);
+    } catch (e) {
+      // Keep as is if parsing fails
+    }
+  }
+
+  // Convert featured to boolean
+  if (updates.featured !== undefined) {
+    updates.featured = updates.featured === true || updates.featured === 'true';
+  }
+
+  // Remove replaceImages from updates (it's just a flag)
+  delete updates.replaceImages;
 
   const product = await Product.findByIdAndUpdate(id, updates, {
     new: true,
@@ -261,16 +449,37 @@ exports.updateProduct = asyncHandler(async (req, res) => {
 
 exports.deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const path = require('path');
+  const fs = require('fs');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid product id', statusCode: 400 });
   }
 
-  const product = await Product.findByIdAndDelete(id);
-
+  const product = await Product.findById(id);
+  
   if (!product) {
     return sendNotFound(res, { message: 'Product not found' });
   }
+
+  // Delete associated image files
+  if (product.images && product.images.length > 0) {
+    const uploadsDir = path.join(__dirname, '../../uploads');
+    product.images.forEach((imageUrl) => {
+      if (imageUrl.startsWith('/uploads/')) {
+        const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch (err) {
+            console.error(`Error deleting image file: ${filePath}`, err);
+          }
+        }
+      }
+    });
+  }
+
+  await Product.findByIdAndDelete(id);
 
   sendSuccess(res, {
     data: null,

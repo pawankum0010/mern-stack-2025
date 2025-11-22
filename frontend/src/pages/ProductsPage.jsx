@@ -61,6 +61,8 @@ const ProductsPage = () => {
   const [formState, setFormState] = useState(initialFormState);
   const [feedback, setFeedback] = useState({ type: null, message: null });
   const [submitting, setSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
 
   // drawer & edit
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -139,6 +141,8 @@ const ProductsPage = () => {
     setFormState(initialFormState);
     setIsEditing(false);
     setEditingProductId(null);
+    setSelectedImages([]);
+    setExistingImages([]);
   };
 
   const closeDrawer = () => {
@@ -156,62 +160,143 @@ const ProductsPage = () => {
     }));
   };
 
+  const handleImageChange = (event) => {
+    const files = Array.from(event.target.files);
+    setSelectedImages((prev) => [...prev, ...files]);
+  };
+
+  const removeSelectedImage = (index) => {
+    setSelectedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setFeedback({ type: null, message: null });
 
-    const payload = {
-      name: formState.name,
-      description: formState.description,
-      price: Number(formState.price),
-      compareAtPrice: formState.compareAtPrice ? Number(formState.compareAtPrice) : undefined,
-      sku: formState.sku,
-      category: formState.category || undefined,
-      tags: formState.tags ? formState.tags.split(',').map((t) => t.trim()).filter(Boolean) : [],
-      images: formState.images ? formState.images.split(',').map((i) => i.trim()).filter(Boolean) : [],
-      stock: formState.stock ? Number(formState.stock) : 0,
-      status: formState.status,
-      featured: formState.featured,
-      weight: formState.weight ? Number(formState.weight) : undefined,
-      weightUnit: formState.weightUnit,
-      vendor: formState.vendor || undefined,
-      brand: formState.brand || undefined,
-      color: formState.color || undefined,
-      size: formState.size || undefined,
-      material: formState.material || undefined,
-      dimensions: (formState.dimensionsLength || formState.dimensionsWidth || formState.dimensionsHeight) 
-        ? {
-            length: formState.dimensionsLength ? Number(formState.dimensionsLength) : undefined,
-            width: formState.dimensionsWidth ? Number(formState.dimensionsWidth) : undefined,
-            height: formState.dimensionsHeight ? Number(formState.dimensionsHeight) : undefined,
-          }
-        : undefined,
-      dimensionUnit: formState.dimensionUnit,
-      warranty: formState.warranty || undefined,
-      shippingInfo: formState.shippingInfo || undefined,
-      returnPolicy: formState.returnPolicy || undefined,
-      specifications: formState.specifications 
-        ? (formState.specifications.trim().startsWith('{') || formState.specifications.trim().startsWith('['))
-          ? JSON.parse(formState.specifications)
-          : formState.specifications
-        : undefined,
-    };
-
     const isUpdate = isEditing && editingProductId;
+
+    // Create FormData for file uploads
+    const formData = new FormData();
+
+    // Add text fields
+    formData.append('name', formState.name);
+    formData.append('description', formState.description || '');
+    formData.append('price', Number(formState.price));
+    if (formState.compareAtPrice) {
+      formData.append('compareAtPrice', Number(formState.compareAtPrice));
+    }
+    if (formState.sku) {
+      formData.append('sku', formState.sku);
+    }
+    if (formState.category) {
+      formData.append('category', formState.category);
+    }
+    if (formState.tags) {
+      const tags = formState.tags.split(',').map((t) => t.trim()).filter(Boolean);
+      formData.append('tags', JSON.stringify(tags));
+    }
+    formData.append('stock', formState.stock ? Number(formState.stock) : 0);
+    formData.append('status', formState.status);
+    formData.append('featured', formState.featured);
+    
+    if (formState.weight) {
+      formData.append('weight', Number(formState.weight));
+      formData.append('weightUnit', formState.weightUnit);
+    }
+    
+    if (formState.vendor) {
+      formData.append('vendor', formState.vendor);
+    }
+    
+    if (formState.brand) {
+      formData.append('brand', formState.brand);
+    }
+    
+    if (formState.color) {
+      formData.append('color', formState.color);
+    }
+    
+    if (formState.size) {
+      formData.append('size', formState.size);
+    }
+    
+    if (formState.material) {
+      formData.append('material', formState.material);
+    }
+    
+    if (formState.dimensionsLength || formState.dimensionsWidth || formState.dimensionsHeight) {
+      const dimensions = {
+        length: formState.dimensionsLength ? Number(formState.dimensionsLength) : undefined,
+        width: formState.dimensionsWidth ? Number(formState.dimensionsWidth) : undefined,
+        height: formState.dimensionsHeight ? Number(formState.dimensionsHeight) : undefined,
+      };
+      formData.append('dimensions', JSON.stringify(dimensions));
+    }
+    
+    formData.append('dimensionUnit', formState.dimensionUnit);
+    
+    if (formState.warranty) {
+      formData.append('warranty', formState.warranty);
+    }
+    
+    if (formState.shippingInfo) {
+      formData.append('shippingInfo', formState.shippingInfo);
+    }
+    
+    if (formState.returnPolicy) {
+      formData.append('returnPolicy', formState.returnPolicy);
+    }
+    
+    if (formState.specifications) {
+      try {
+        const specs = formState.specifications.trim().startsWith('{') || formState.specifications.trim().startsWith('[')
+          ? JSON.parse(formState.specifications)
+          : formState.specifications;
+        formData.append('specifications', JSON.stringify(specs));
+      } catch (e) {
+        // Invalid JSON, skip
+      }
+    }
+
+    // Add uploaded images
+    selectedImages.forEach((file) => {
+      formData.append('images', file);
+    });
+
+    // For updates, if we removed existing images, we need to replace them
+    // The backend will handle this based on whether files are uploaded
+    if (isUpdate && existingImages.length === 0 && selectedImages.length === 0) {
+      // User removed all images, we'll send empty array
+      formData.append('images', JSON.stringify([]));
+    }
 
     setSubmitting(true);
     try {
+      // For FormData, let axios/browser set Content-Type automatically with boundary
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+
       if (isUpdate) {
-        await api.put(`/products/${editingProductId}`, payload);
+        await api.put(`/products/${editingProductId}`, formData, config);
         setFeedback({ type: 'success', message: 'Product updated successfully.' });
       } else {
-        await api.post('/products', payload);
+        await api.post('/products', formData, config);
         setFeedback({ type: 'success', message: 'Product created successfully.' });
       }
       await fetchProducts();
       closeDrawer();
     } catch (error) {
-      setFeedback({ type: 'danger', message: error.message || 'Operation failed.' });
+      setFeedback({ 
+        type: 'danger', 
+        message: error.response?.data?.message || error.message || 'Operation failed.' 
+      });
     } finally {
       setSubmitting(false);
     }
@@ -226,6 +311,12 @@ const ProductsPage = () => {
   const handleEditProduct = (product) => {
     setIsEditing(true);
     setEditingProductId(product._id);
+    
+    // Set existing images
+    const productImages = product.images || [];
+    setExistingImages(productImages);
+    setSelectedImages([]);
+    
     setFormState({
       name: product.name || '',
       description: product.description || '',
@@ -234,7 +325,7 @@ const ProductsPage = () => {
       sku: product.sku || '',
       category: product.category?._id || product.category || '',
       tags: product.tags?.join(', ') || '',
-      images: product.images?.join(', ') || '',
+      images: '', // No longer used for file input
       stock: product.stock || '',
       status: product.status || 'active',
       featured: product.featured || false,
@@ -563,14 +654,91 @@ const ProductsPage = () => {
             </Col>
             <Col sm={12}>
               <Form.Group controlId="images">
-                <Form.Label>Image URLs (comma-separated)</Form.Label>
+                <Form.Label>Product Images (Multiple)</Form.Label>
                 <Form.Control
-                  name="images"
-                  value={formState.images}
-                  onChange={handleChange}
-                  placeholder="https://example.com/image1.jpg, https://example.com/image2.jpg"
-                  disabled={!canManageProducts}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageChange}
+                  disabled={!canManageProducts || submitting}
                 />
+                <Form.Text className="text-muted">
+                  You can select multiple images. Supported formats: JPEG, PNG, GIF, WebP (Max 5MB per image)
+                </Form.Text>
+                
+                {/* Existing Images Preview */}
+                {existingImages.length > 0 && (
+                  <div className="mt-3">
+                    <small className="text-muted d-block mb-2">Existing Images:</small>
+                    <div className="d-flex flex-wrap gap-2">
+                        {existingImages.map((imageUrl, index) => {
+                          const fullUrl = imageUrl.startsWith('http') 
+                            ? imageUrl 
+                            : `${api.defaults.baseURL.replace('/api', '')}${imageUrl}`;
+                          return (
+                          <div key={index} className="position-relative" style={{ width: '100px', height: '100px' }}>
+                            <img
+                              src={fullUrl}
+                              alt={`Product ${index + 1}`}
+                              className="img-thumbnail"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            {canManageProducts && !submitting && (
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                className="position-absolute top-0 end-0"
+                                style={{ transform: 'translate(50%, -50%)' }}
+                                onClick={() => removeExistingImage(index)}
+                              >
+                                ×
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Form.Text className="text-muted d-block mt-2">
+                      Uploading new images will replace these existing images.
+                    </Form.Text>
+                  </div>
+                )}
+                
+                {/* Selected Images Preview */}
+                {selectedImages.length > 0 && (
+                  <div className="mt-3">
+                    <small className="text-muted d-block mb-2">New Images to Upload ({selectedImages.length}):</small>
+                    <div className="d-flex flex-wrap gap-2">
+                      {selectedImages.map((file, index) => {
+                        const imageUrl = URL.createObjectURL(file);
+                        return (
+                          <div key={index} className="position-relative" style={{ width: '100px', height: '100px' }}>
+                            <img
+                              src={imageUrl}
+                              alt={`New ${index + 1}`}
+                              className="img-thumbnail"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            {canManageProducts && !submitting && (
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                className="position-absolute top-0 end-0"
+                                style={{ transform: 'translate(50%, -50%)' }}
+                                onClick={() => removeSelectedImage(index)}
+                              >
+                                ×
+                              </Button>
+                            )}
+                            <small className="d-block text-center mt-1" style={{ fontSize: '10px' }}>
+                              {file.name.length > 15 ? `${file.name.substring(0, 15)}...` : file.name}
+                            </small>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </Form.Group>
             </Col>
             <Col sm={12} md={6}>
