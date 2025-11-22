@@ -19,11 +19,24 @@ const AppNavbar = () => {
   const isCustomer = user?.role?.name?.toLowerCase() === 'customer';
 
   return (
-    <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
+    <Navbar bg="light" variant="light" expand="lg" className="mb-4" style={{ backgroundColor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
       <Container fluid>
         <Navbar.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.svg" alt="Soft Chilli" style={{ height: '40px' }} />
-          {isAdmin && <span className="d-none d-md-inline">Admin Panel</span>}
+          <img 
+            src="/logo.svg" 
+            alt="Soft Chilli" 
+            style={{ 
+              height: '45px', 
+              width: 'auto',
+              objectFit: 'contain',
+              display: 'block'
+            }} 
+            onError={(e) => {
+              console.error('Logo failed to load');
+              e.target.style.display = 'none';
+            }}
+          />
+          {isAdmin && <span className="d-none d-md-inline" style={{ color: '#333' }}>Admin Panel</span>}
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
@@ -54,7 +67,7 @@ const AppNavbar = () => {
               <Nav.Link
                 onClick={() => navigate('/cart')}
                 className="d-flex align-items-center position-relative"
-                style={{ cursor: 'pointer', color: 'white' }}
+                style={{ cursor: 'pointer', color: '#333' }}
               >
                 <FiShoppingCart size={20} />
                 {cartCount > 0 && (
@@ -78,7 +91,7 @@ const AppNavbar = () => {
               </Nav.Link>
             </Nav>
           )}
-          <div className="d-flex align-items-center gap-3 text-light">
+          <div className="d-flex align-items-center gap-3" style={{ color: '#333' }}>
             {user ? (
               <>
                 {user.profilePicture ? (
@@ -98,16 +111,16 @@ const AppNavbar = () => {
                 <span className="badge bg-secondary text-uppercase">
                   {user?.role?.name || user?.role}
                 </span>
-                <Button variant="outline-light" size="sm" onClick={handleLogout}>
+                <Button variant="outline-secondary" size="sm" onClick={handleLogout}>
                   Logout
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="outline-light" size="sm" onClick={() => navigate('/login')}>
+                <Button variant="outline-secondary" size="sm" onClick={() => navigate('/login')}>
                   Login
                 </Button>
-                <Button variant="light" size="sm" onClick={() => navigate('/signup')}>
+                <Button variant="primary" size="sm" onClick={() => navigate('/signup')}>
                   Sign Up
                 </Button>
               </>
