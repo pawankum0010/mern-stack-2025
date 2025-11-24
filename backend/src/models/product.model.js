@@ -64,9 +64,8 @@ const productSchema = new mongoose.Schema(
       min: [0, 'Weight cannot be negative'],
     },
     weightUnit: {
-      type: String,
-      enum: ['kg', 'g', 'lb', 'oz'],
-      default: 'kg',
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'WeightUnit',
     },
     dimensions: {
       length: { type: Number, min: 0 },
@@ -92,8 +91,8 @@ const productSchema = new mongoose.Schema(
       trim: true,
     },
     size: {
-      type: String,
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Size',
     },
     material: {
       type: String,

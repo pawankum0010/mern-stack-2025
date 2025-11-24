@@ -118,6 +118,8 @@ exports.createProduct = asyncHandler(async (req, res) => {
   const product = await Product.create(productData);
   await product.populate('category', 'name');
   await product.populate('vendor', 'name');
+  await product.populate('weightUnit', 'name code symbol');
+  await product.populate('size', 'name code');
 
   sendSuccess(res, {
     data: product,
@@ -206,10 +208,14 @@ exports.getProducts = asyncHandler(async (req, res) => {
   // Manually populate only valid ObjectIds (in parallel for better performance)
   const Category = require('../models/category.model');
   const Vendor = require('../models/vendor.model');
+  const WeightUnit = require('../models/weightUnit.model');
+  const Size = require('../models/size.model');
   
-  // Collect unique category and vendor IDs
+  // Collect unique IDs
   const categoryIds = new Set();
   const vendorIds = new Set();
+  const weightUnitIds = new Set();
+  const sizeIds = new Set();
   
   products.forEach((product) => {
     if (product.category && mongoose.Types.ObjectId.isValid(product.category)) {
@@ -218,21 +224,35 @@ exports.getProducts = asyncHandler(async (req, res) => {
     if (product.vendor && mongoose.Types.ObjectId.isValid(product.vendor)) {
       vendorIds.add(product.vendor.toString());
     }
+    if (product.weightUnit && mongoose.Types.ObjectId.isValid(product.weightUnit)) {
+      weightUnitIds.add(product.weightUnit.toString());
+    }
+    if (product.size && mongoose.Types.ObjectId.isValid(product.size)) {
+      sizeIds.add(product.size.toString());
+    }
   });
   
-  // Fetch all categories and vendors in parallel
-  const [categories, vendors] = await Promise.all([
+  // Fetch all related data in parallel
+  const [categories, vendors, weightUnits, sizes] = await Promise.all([
     categoryIds.size > 0
       ? Category.find({ _id: { $in: Array.from(categoryIds) } }).select('name').lean()
       : [],
     vendorIds.size > 0
       ? Vendor.find({ _id: { $in: Array.from(vendorIds) } }).select('name').lean()
       : [],
+    weightUnitIds.size > 0
+      ? WeightUnit.find({ _id: { $in: Array.from(weightUnitIds) } }).select('name code symbol').lean()
+      : [],
+    sizeIds.size > 0
+      ? Size.find({ _id: { $in: Array.from(sizeIds) } }).select('name code').lean()
+      : [],
   ]);
   
   // Create lookup maps
   const categoryMap = new Map(categories.map((cat) => [cat._id.toString(), cat]));
   const vendorMap = new Map(vendors.map((ven) => [ven._id.toString(), ven]));
+  const weightUnitMap = new Map(weightUnits.map((wu) => [wu._id.toString(), wu]));
+  const sizeMap = new Map(sizes.map((s) => [s._id.toString(), s]));
   
   // Populate products
   products.forEach((product) => {
@@ -246,6 +266,18 @@ exports.getProducts = asyncHandler(async (req, res) => {
       const vendor = vendorMap.get(product.vendor.toString());
       if (vendor) {
         product.vendor = vendor;
+      }
+    }
+    if (product.weightUnit && mongoose.Types.ObjectId.isValid(product.weightUnit)) {
+      const weightUnit = weightUnitMap.get(product.weightUnit.toString());
+      if (weightUnit) {
+        product.weightUnit = weightUnit;
+      }
+    }
+    if (product.size && mongoose.Types.ObjectId.isValid(product.size)) {
+      const size = sizeMap.get(product.size.toString());
+      if (size) {
+        product.size = size;
       }
     }
   });
@@ -277,7 +309,9 @@ exports.getProductById = asyncHandler(async (req, res) => {
 
   const product = await Product.findById(id)
     .populate('category', 'name')
-    .populate('vendor', 'name');
+    .populate('vendor', 'name')
+    .populate('weightUnit', 'name code symbol')
+    .populate('size', 'name code');
 
   if (!product) {
     return sendNotFound(res, { message: 'Product not found' });
@@ -454,7 +488,9 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     runValidators: true,
   })
     .populate('category', 'name')
-    .populate('vendor', 'name');
+    .populate('vendor', 'name')
+    .populate('weightUnit', 'name code symbol')
+    .populate('size', 'name code');
 
   if (!product) {
     return sendNotFound(res, { message: 'Product not found' });

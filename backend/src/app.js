@@ -14,6 +14,8 @@ const vendorRoutes = require('./routes/vendor.routes');
 const categoryRoutes = require('./routes/category.routes');
 const addressRoutes = require('./routes/address.routes');
 const stateRoutes = require('./routes/state.routes');
+const weightUnitRoutes = require('./routes/weightUnit.routes');
+const sizeRoutes = require('./routes/size.routes');
 const customerActivityLogRoutes = require('./routes/customerActivityLog.routes');
 const errorLogRoutes = require('./routes/errorLog.routes');
 const notFound = require('./middlewares/notFound');
@@ -110,6 +112,8 @@ app.use('/api/vendors', vendorRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/addresses', addressRoutes);
 app.use('/api/states', stateRoutes);
+app.use('/api/weight-units', weightUnitRoutes);
+app.use('/api/sizes', sizeRoutes);
 app.use('/api/customer-activity-logs', customerActivityLogRoutes);
 app.use('/api/error-logs', errorLogRoutes);
 

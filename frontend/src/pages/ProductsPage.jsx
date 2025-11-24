@@ -32,7 +32,7 @@ const initialFormState = {
   status: 'active',
   featured: false,
   weight: '',
-  weightUnit: 'kg',
+  weightUnit: '',
   vendor: '',
   brand: '',
   color: '',
@@ -56,6 +56,8 @@ const ProductsPage = () => {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [vendors, setVendors] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [weightUnits, setWeightUnits] = useState([]);
+  const [sizes, setSizes] = useState([]);
 
   // ui state
   const [formState, setFormState] = useState(initialFormState);
@@ -111,8 +113,26 @@ const ProductsPage = () => {
     }
   };
 
+  const fetchWeightUnits = async () => {
+    try {
+      const { data } = await api.get('/weight-units', { params: { status: 'active' } });
+      setWeightUnits(data?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch weight units:', error);
+    }
+  };
+
+  const fetchSizes = async () => {
+    try {
+      const { data } = await api.get('/sizes', { params: { status: 'active' } });
+      setSizes(data?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch sizes:', error);
+    }
+  };
+
   useEffect(() => {
-    Promise.all([fetchVendors(), fetchCategories()]);
+    Promise.all([fetchVendors(), fetchCategories(), fetchWeightUnits(), fetchSizes()]);
   }, []);
 
   useEffect(() => {
@@ -205,7 +225,9 @@ const ProductsPage = () => {
     
     if (formState.weight) {
       formData.append('weight', Number(formState.weight));
-      formData.append('weightUnit', formState.weightUnit);
+      if (formState.weightUnit) {
+        formData.append('weightUnit', formState.weightUnit);
+      }
     }
     
     if (formState.vendor) {
@@ -330,11 +352,11 @@ const ProductsPage = () => {
       status: product.status || 'active',
       featured: product.featured || false,
       weight: product.weight || '',
-      weightUnit: product.weightUnit || 'kg',
+      weightUnit: product.weightUnit?._id || product.weightUnit || '',
       vendor: product.vendor?._id || product.vendor || '',
       brand: product.brand || '',
       color: product.color || '',
-      size: product.size || '',
+      size: product.size?._id || product.size || '',
       material: product.material || '',
       dimensionsLength: product.dimensions?.length || '',
       dimensionsWidth: product.dimensions?.width || '',
@@ -760,12 +782,14 @@ const ProductsPage = () => {
                     value={formState.weightUnit}
                     onChange={handleChange}
                     disabled={!canManageProducts}
-                    style={{ width: '100px' }}
+                    style={{ width: '150px' }}
                   >
-                    <option value="kg">kg</option>
-                    <option value="g">g</option>
-                    <option value="lb">lb</option>
-                    <option value="oz">oz</option>
+                    <option value="">Select Unit</option>
+                    {weightUnits.map((unit) => (
+                      <option key={unit._id} value={unit._id}>
+                        {unit.symbol || unit.code} ({unit.name})
+                      </option>
+                    ))}
                   </Form.Select>
                 </div>
               </Form.Group>
@@ -815,13 +839,19 @@ const ProductsPage = () => {
             <Col sm={12} md={6}>
               <Form.Group controlId="size">
                 <Form.Label>Size</Form.Label>
-                <Form.Control
+                <Form.Select
                   name="size"
                   value={formState.size}
                   onChange={handleChange}
-                  placeholder="Size"
                   disabled={!canManageProducts}
-                />
+                >
+                  <option value="">Select Size</option>
+                  {sizes.map((size) => (
+                    <option key={size._id} value={size._id}>
+                      {size.name} ({size.code})
+                    </option>
+                  ))}
+                </Form.Select>
               </Form.Group>
             </Col>
             <Col sm={12} md={6}>

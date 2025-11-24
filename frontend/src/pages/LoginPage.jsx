@@ -31,9 +31,16 @@ const LoginPage = () => {
     setError(null);
 
     try {
-      await login(formState);
-      const from = location.state?.from || '/';
-      navigate(from, { replace: true });
+      const response = await login(formState);
+      const userRole = response?.data?.user?.role?.name?.toLowerCase();
+      
+      // Redirect admin/superadmin to product management, others to product listing
+      if (userRole === 'admin' || userRole === 'superadmin') {
+        navigate('/admin/products', { replace: true });
+      } else {
+        const from = location.state?.from || '/';
+        navigate(from, { replace: true });
+      }
     } catch (err) {
       setError(err.message || 'Invalid credentials');
     }

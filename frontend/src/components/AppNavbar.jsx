@@ -33,7 +33,10 @@ const AppNavbar = () => {
       }}
     >
       <Container fluid>
-        <Navbar.Brand onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <Navbar.Brand 
+          onClick={() => navigate(isAdmin ? '/admin/products' : '/')} 
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}
+        >
           <img 
             src="/logo.svg" 
             alt="Soft Chilli" 
@@ -53,7 +56,7 @@ const AppNavbar = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link onClick={() => navigate('/')}>Shop</Nav.Link>
+            {!isAdmin && <Nav.Link onClick={() => navigate('/')}>Shop</Nav.Link>}
             {isAdmin && (
               <>
                 <Nav.Link onClick={() => navigate('/admin')}>Users</Nav.Link>
@@ -61,6 +64,8 @@ const AppNavbar = () => {
                 <Nav.Link onClick={() => navigate('/admin/vendors')}>Vendors</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/categories')}>Categories</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/states')}>States</Nav.Link>
+                <Nav.Link onClick={() => navigate('/admin/weight-units')}>Weight Units</Nav.Link>
+                <Nav.Link onClick={() => navigate('/admin/sizes')}>Sizes</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/customer-activity-logs')}>Activity Logs</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/error-logs')}>Error Logs</Nav.Link>
               </>

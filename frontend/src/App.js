@@ -19,9 +19,13 @@ import AddressesPage from './pages/AddressesPage';
 import VendorsPage from './pages/VendorsPage';
 import CategoriesPage from './pages/CategoriesPage';
 import StatesPage from './pages/StatesPage';
+import WeightUnitsPage from './pages/WeightUnitsPage';
+import SizesPage from './pages/SizesPage';
 import CustomerActivityLogsPage from './pages/CustomerActivityLogsPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import AdminRedirect from './components/AdminRedirect';
+import DefaultRedirect from './components/DefaultRedirect';
 
 import './App.css';
 
@@ -37,13 +41,15 @@ function App() {
             }}
           >
         <Routes>
-          <Route path="/" element={<ProductListingPage />} />
-          <Route path="/products/:id" element={<ProductDetailsPage />} />
-          <Route path="/admin" element={<DashboardPage />} />
+          <Route path="/" element={<AdminRedirect><ProductListingPage /></AdminRedirect>} />
+          <Route path="/products/:id" element={<AdminRedirect><ProductDetailsPage /></AdminRedirect>} />
+          <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
           <Route path="/admin/products" element={<ProductsPage />} />
           <Route path="/admin/vendors" element={<VendorsPage />} />
           <Route path="/admin/categories" element={<CategoriesPage />} />
           <Route path="/admin/states" element={<StatesPage />} />
+          <Route path="/admin/weight-units" element={<WeightUnitsPage />} />
+          <Route path="/admin/sizes" element={<SizesPage />} />
           <Route path="/admin/customer-activity-logs" element={<CustomerActivityLogsPage />} />
           <Route path="/admin/error-logs" element={<ErrorLogsPage />} />
           <Route path="/cart" element={<CartPage />} />
@@ -56,7 +62,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<DefaultRedirect />} />
         </Routes>
           </BrowserRouter>
         </CartProvider>
