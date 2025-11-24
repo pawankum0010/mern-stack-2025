@@ -30,7 +30,12 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <CartProvider>
-          <BrowserRouter>
+          <BrowserRouter
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
         <Routes>
           <Route path="/" element={<ProductListingPage />} />
           <Route path="/products/:id" element={<ProductDetailsPage />} />

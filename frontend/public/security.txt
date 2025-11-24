@@ -1,0 +1,22 @@
+# Security.txt file
+# This file provides security researchers with contact information for reporting vulnerabilities
+# See: https://securitytxt.org/
+
+Contact: mailto:security@yourdomain.com
+Contact: https://yourdomain.com/security
+Expires: 2026-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://yourdomain.com/.well-known/security.txt
+
+# Security Policy
+Policy: https://yourdomain.com/security-policy
+
+# Acknowledgments
+Acknowledgments: https://yourdomain.com/security/acknowledgments
+
+# Encryption
+Encryption: https://yourdomain.com/.well-known/pgp-key.txt
+
+# Hiring
+Hiring: https://yourdomain.com/careers
+

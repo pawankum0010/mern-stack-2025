@@ -7,13 +7,15 @@ const {
   register,
 } = require('../controllers/auth.controller');
 const authenticate = require('../middlewares/authenticate');
+const { authLimiter, registerLimiter } = require('../middlewares/security');
 
 const router = express.Router();
 
-router.post('/login', login);
+// Apply rate limiting to authentication endpoints
+router.post('/login', authLimiter, login);
 router.post('/logout', authenticate, logout);
-router.post('/register', register);
-router.post('/register-superadmin', registerSuperAdmin);
+router.post('/register', registerLimiter, register);
+router.post('/register-superadmin', registerLimiter, registerSuperAdmin);
 
 module.exports = router;
 
