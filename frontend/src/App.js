@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
-import DashboardPage from './pages/DashboardPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductListingPage from './pages/ProductListingPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
@@ -23,6 +22,9 @@ import WeightUnitsPage from './pages/WeightUnitsPage';
 import SizesPage from './pages/SizesPage';
 import CustomerActivityLogsPage from './pages/CustomerActivityLogsPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
+import ActiveUsersReportPage from './pages/ActiveUsersReportPage';
+import HighestSellingProductsPage from './pages/HighestSellingProductsPage';
+import OrdersStatusReportPage from './pages/OrdersStatusReportPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import AdminRedirect from './components/AdminRedirect';
 import DefaultRedirect from './components/DefaultRedirect';
@@ -52,6 +54,9 @@ function App() {
           <Route path="/admin/sizes" element={<SizesPage />} />
           <Route path="/admin/customer-activity-logs" element={<CustomerActivityLogsPage />} />
           <Route path="/admin/error-logs" element={<ErrorLogsPage />} />
+          <Route path="/admin/reports/active-users" element={<ActiveUsersReportPage />} />
+          <Route path="/admin/reports/highest-selling-products" element={<HighestSellingProductsPage />} />
+          <Route path="/admin/reports/orders-status" element={<OrdersStatusReportPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />

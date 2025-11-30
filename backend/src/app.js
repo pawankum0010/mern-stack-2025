@@ -18,6 +18,7 @@ const weightUnitRoutes = require('./routes/weightUnit.routes');
 const sizeRoutes = require('./routes/size.routes');
 const customerActivityLogRoutes = require('./routes/customerActivityLog.routes');
 const errorLogRoutes = require('./routes/errorLog.routes');
+const reportRoutes = require('./routes/report.routes');
 const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
 const { apiLimiter } = require('./middlewares/security');
@@ -116,6 +117,7 @@ app.use('/api/weight-units', weightUnitRoutes);
 app.use('/api/sizes', sizeRoutes);
 app.use('/api/customer-activity-logs', customerActivityLogRoutes);
 app.use('/api/error-logs', errorLogRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -1,4 +1,4 @@
-import { Navbar, Nav, Button, Container, Badge } from 'react-bootstrap';
+import { Navbar, Nav, NavDropdown, Button, Container, Badge } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiMoon, FiSun } from 'react-icons/fi';
 
@@ -61,11 +61,34 @@ const AppNavbar = () => {
               <>
                 <Nav.Link onClick={() => navigate('/admin')}>Users</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/products')}>Products</Nav.Link>
-                <Nav.Link onClick={() => navigate('/admin/vendors')}>Vendors</Nav.Link>
-                <Nav.Link onClick={() => navigate('/admin/categories')}>Categories</Nav.Link>
-                <Nav.Link onClick={() => navigate('/admin/states')}>States</Nav.Link>
-                <Nav.Link onClick={() => navigate('/admin/weight-units')}>Weight Units</Nav.Link>
-                <Nav.Link onClick={() => navigate('/admin/sizes')}>Sizes</Nav.Link>
+                <NavDropdown title="Master" id="master-dropdown">
+                  <NavDropdown.Item onClick={() => navigate('/admin/categories')}>
+                    Categories
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/vendors')}>
+                    Vendors
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/states')}>
+                    States
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/weight-units')}>
+                    Weight Units
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/sizes')}>
+                    Sizes
+                  </NavDropdown.Item>
+                </NavDropdown>
+                <NavDropdown title="Reports" id="reports-dropdown">
+                  <NavDropdown.Item onClick={() => navigate('/admin/reports/active-users')}>
+                    Active Users
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/reports/highest-selling-products')}>
+                    Highest Selling Products
+                  </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/reports/orders-status')}>
+                    Orders Status
+                  </NavDropdown.Item>
+                </NavDropdown>
                 <Nav.Link onClick={() => navigate('/admin/customer-activity-logs')}>Activity Logs</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/error-logs')}>Error Logs</Nav.Link>
               </>
