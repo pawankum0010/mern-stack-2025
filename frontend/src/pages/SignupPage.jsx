@@ -35,7 +35,35 @@ const SignupPage = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+    
+    // Phone number validation - only 10 digits
+    if (name === 'phone') {
+      const phoneValue = value.replace(/\D/g, '').slice(0, 10);
+      setFormState((prev) => ({ ...prev, [name]: phoneValue }));
+      return;
+    }
+    
     setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDateChange = (event) => {
+    const { value } = event.target;
+    // Convert from date input format (yyyy-mm-dd) to backend format (dd-mm-yyyy)
+    if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-');
+      setFormState((prev) => ({ ...prev, dob: `${day}-${month}-${year}` }));
+    }
+  };
+
+  const convertDateToInputFormat = (dobString) => {
+    // Convert dd-mm-yyyy to yyyy-mm-dd for date input
+    if (!dobString) return '';
+    const parts = dobString.split('-');
+    if (parts.length === 3 && /^\d{2}-\d{2}-\d{4}$/.test(dobString)) {
+      const [day, month, year] = parts;
+      return `${year}-${month}-${day}`;
+    }
+    return '';
   };
 
   const handleSubmit = async (event) => {
@@ -175,20 +203,24 @@ const SignupPage = () => {
                 <Form.Group controlId="phone" className="mb-3">
                   <Form.Label>Phone</Form.Label>
                   <Form.Control
+                    type="tel"
                     name="phone"
                     value={formState.phone}
-                    placeholder="+1-234-567-8900"
+                    placeholder="1234567890"
                     onChange={handleChange}
+                    maxLength={10}
                   />
+                  <Form.Text className="text-muted">
+                    10 digits only
+                  </Form.Text>
                 </Form.Group>
 
                 <Form.Group controlId="dob" className="mb-3">
-                  <Form.Label>Date of Birth (dd-mm-yyyy)</Form.Label>
+                  <Form.Label>Date of Birth</Form.Label>
                   <Form.Control
-                    name="dob"
-                    value={formState.dob}
-                    placeholder="17-05-1995"
-                    onChange={handleChange}
+                    type="date"
+                    value={convertDateToInputFormat(formState.dob)}
+                    onChange={handleDateChange}
                   />
                 </Form.Group>
 

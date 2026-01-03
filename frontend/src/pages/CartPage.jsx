@@ -115,21 +115,10 @@ const CartPage = () => {
     navigate('/checkout');
   };
 
-  if (loading) {
-    return (
-      <>
-        <AppNavbar />
-        <Container className="py-5">
-          <div className="text-center">
-            <Spinner animation="border" role="status" />
-            <p className="mt-2 text-muted">Loading cart...</p>
-          </div>
-        </Container>
-      </>
-    );
-  }
+  // Show cart structure even while loading
 
-  if (!cart || !cart.items || cart.items.length === 0) {
+  // Handle empty cart - but only if not loading
+  if (!loading && (!cart || !cart.items || cart.items.length === 0)) {
     return (
       <>
         <AppNavbar />
@@ -164,19 +153,25 @@ const CartPage = () => {
                 <Card.Title className="mb-0">Shopping Cart</Card.Title>
               </Card.Header>
               <Card.Body>
-                <div className="table-responsive">
-                  <Table>
-                    <thead>
-                      <tr>
-                        <th>Product</th>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                        <th>Total</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {cart.items.map((item) => {
+                {loading ? (
+                  <div className="text-center py-5">
+                    <Spinner animation="border" role="status" />
+                    <p className="mt-2 text-muted">Loading cart...</p>
+                  </div>
+                ) : (
+                  <div className="table-responsive">
+                    <Table>
+                      <thead>
+                        <tr>
+                          <th>Product</th>
+                          <th>Price</th>
+                          <th>Quantity</th>
+                          <th>Total</th>
+                          <th>Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cart && cart.items ? cart.items.map((item) => {
                         const product = item.product || {};
                         const price = product.price || item.price || 0;
                         const quantity = item.quantity || 0;
@@ -221,7 +216,13 @@ const CartPage = () => {
                                 >
                                   <FiMinus />
                                 </Button>
-                                <span>{quantity}</span>
+                                <div className="d-flex align-items-center gap-2" style={{ minWidth: '60px', justifyContent: 'center' }}>
+                                  {isUpdating ? (
+                                    <Spinner size="sm" animation="border" role="status" />
+                                  ) : (
+                                    <span>{quantity}</span>
+                                  )}
+                                </div>
                                 <Button
                                   size="sm"
                                   variant="outline-secondary"
@@ -246,10 +247,11 @@ const CartPage = () => {
                             </td>
                           </tr>
                         );
-                      })}
-                    </tbody>
-                  </Table>
-                </div>
+                        }) : null}
+                      </tbody>
+                    </Table>
+                  </div>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -259,38 +261,48 @@ const CartPage = () => {
                 <Card.Title className="mb-0">Order Summary</Card.Title>
               </Card.Header>
               <Card.Body>
-                <div className="d-flex justify-content-between mb-3">
-                  <span>Subtotal:</span>
-                  <strong>${calculateTotal().toFixed(2)}</strong>
-                </div>
-                <div className="d-flex justify-content-between mb-3">
-                  <span>Tax:</span>
-                  <span>$0.00</span>
-                </div>
-                <div className="d-flex justify-content-between mb-3">
-                  <span>Shipping:</span>
-                  <span>$0.00</span>
-                </div>
-                <hr />
-                <div className="d-flex justify-content-between mb-4">
-                  <strong>Total:</strong>
-                  <strong className="h5">${calculateTotal().toFixed(2)}</strong>
-                </div>
-                <div className="d-grid gap-2">
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    onClick={handleCheckout}
-                  >
-                    Proceed to Checkout
-                  </Button>
-                  <Button
-                    variant="outline-secondary"
-                    onClick={() => navigate('/shop')}
-                  >
-                    Continue Shopping
-                  </Button>
-                </div>
+                {loading ? (
+                  <div className="text-center py-3">
+                    <Spinner size="sm" animation="border" role="status" />
+                  </div>
+                ) : (
+                  <>
+                    <div className="d-flex justify-content-between mb-3">
+                      <span>Subtotal:</span>
+                      <strong>${calculateTotal().toFixed(2)}</strong>
+                    </div>
+                    <div className="d-flex justify-content-between mb-3">
+                      <span>Tax:</span>
+                      <span>$0.00</span>
+                    </div>
+                    <div className="d-flex justify-content-between mb-3">
+                      <span>Shipping:</span>
+                      <span>$0.00</span>
+                    </div>
+                    <hr />
+                    <div className="d-flex justify-content-between mb-4">
+                      <strong>Total:</strong>
+                      <strong className="h5">${calculateTotal().toFixed(2)}</strong>
+                    </div>
+                    <div className="d-grid gap-2">
+                      <Button
+                        variant="primary"
+                        size="lg"
+                        onClick={handleCheckout}
+                        disabled={loading}
+                      >
+                        Proceed to Checkout
+                      </Button>
+                      <Button
+                        variant="outline-secondary"
+                        onClick={() => navigate('/shop')}
+                        disabled={loading}
+                      >
+                        Continue Shopping
+                      </Button>
+                    </div>
+                  </>
+                )}
               </Card.Body>
             </Card>
           </Col>
