@@ -59,7 +59,7 @@ const AppNavbar = () => {
             {!isAdmin && <Nav.Link onClick={() => navigate('/')}>Shop</Nav.Link>}
             {isAdmin && (
               <>
-                <Nav.Link onClick={() => navigate('/admin')}>Users</Nav.Link>
+                <Nav.Link onClick={() => navigate('/admin/users')}>Users</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/products')}>Products</Nav.Link>
                 <NavDropdown title="Master" id="master-dropdown">
                   <NavDropdown.Item onClick={() => navigate('/admin/categories')}>

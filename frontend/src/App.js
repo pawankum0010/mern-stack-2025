@@ -17,6 +17,7 @@ import ProfilePage from './pages/ProfilePage';
 import AddressesPage from './pages/AddressesPage';
 import VendorsPage from './pages/VendorsPage';
 import CategoriesPage from './pages/CategoriesPage';
+import UsersPage from './pages/UsersPage';
 import StatesPage from './pages/StatesPage';
 import WeightUnitsPage from './pages/WeightUnitsPage';
 import SizesPage from './pages/SizesPage';
@@ -46,6 +47,7 @@ function App() {
           <Route path="/" element={<AdminRedirect><ProductListingPage /></AdminRedirect>} />
           <Route path="/products/:id" element={<AdminRedirect><ProductDetailsPage /></AdminRedirect>} />
           <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
+          <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/admin/products" element={<ProductsPage />} />
           <Route path="/admin/vendors" element={<VendorsPage />} />
           <Route path="/admin/categories" element={<CategoriesPage />} />
