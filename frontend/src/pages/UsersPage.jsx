@@ -91,12 +91,20 @@ const UsersPage = () => {
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
+    setFeedback({ type: null, message: null });
     try {
-      const { data } = await api.get('/users');
-      setUsers(data?.data || []);
+      const response = await api.get('/users');
+      const usersList = response?.data?.data || [];
+      setUsers(usersList);
+      if (usersList.length === 0) {
+        setFeedback({ type: 'info', message: 'No users found in the database.' });
+      }
     } catch (error) {
-      if (error.response?.status === 404) setUsers([]);
-      else setFeedback({ type: 'danger', message: error.message });
+      console.error('Error fetching users:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch users';
+      setFeedback({ type: 'danger', message: errorMessage });
+      // Still set users to empty array even on error to show "No users found"
+      setUsers([]);
     } finally {
       setLoadingUsers(false);
     }
