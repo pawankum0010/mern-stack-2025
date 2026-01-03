@@ -49,11 +49,15 @@ describe('ProductListingPage', () => {
     mockNavigate.mockClear();
   });
 
-  it('should render loading state initially', () => {
+  it('should render loading state initially', async () => {
     api.get.mockImplementation(() => new Promise(() => {})); // Never resolves
 
     renderWithProviders(<ProductListingPage />);
-    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    
+    // Wait for loading state to appear (after debounce)
+    await waitFor(() => {
+      expect(screen.getByText(/loading products/i)).toBeInTheDocument();
+    }, { timeout: 1000 });
   });
 
   it('should display products when loaded', async () => {

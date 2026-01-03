@@ -16,6 +16,7 @@ const SignupPage = () => {
     password: '',
     confirmPassword: '',
     phone: '',
+    pincode: '',
     dob: '',
     addressLine1: '',
     addressLine2: '',
@@ -40,6 +41,13 @@ const SignupPage = () => {
     if (name === 'phone') {
       const phoneValue = value.replace(/\D/g, '').slice(0, 10);
       setFormState((prev) => ({ ...prev, [name]: phoneValue }));
+      return;
+    }
+    
+    // Pincode validation - only 6 digits
+    if (name === 'pincode') {
+      const pincodeValue = value.replace(/\D/g, '').slice(0, 6);
+      setFormState((prev) => ({ ...prev, [name]: pincodeValue }));
       return;
     }
     
@@ -87,6 +95,7 @@ const SignupPage = () => {
       email: formState.email,
       password: formState.password,
       phone: formState.phone,
+      pincode: formState.pincode,
       dob: formState.dob,
       address: {
         line1: formState.addressLine1,
@@ -212,6 +221,23 @@ const SignupPage = () => {
                   />
                   <Form.Text className="text-muted">
                     10 digits only
+                  </Form.Text>
+                </Form.Group>
+
+                <Form.Group controlId="pincode" className="mb-3">
+                  <Form.Label>Pincode *</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="pincode"
+                    value={formState.pincode}
+                    placeholder="123456"
+                    onChange={handleChange}
+                    maxLength={6}
+                    required
+                    pattern="[0-9]{6}"
+                  />
+                  <Form.Text className="text-muted">
+                    6 digits only (required for shipping)
                   </Form.Text>
                 </Form.Group>
 

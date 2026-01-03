@@ -77,6 +77,9 @@ const AppNavbar = () => {
                   <NavDropdown.Item onClick={() => navigate('/admin/sizes')}>
                     Sizes
                   </NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/pincodes')}>
+                    Pincodes
+                  </NavDropdown.Item>
                 </NavDropdown>
                 <NavDropdown title="Reports" id="reports-dropdown">
                   <NavDropdown.Item onClick={() => navigate('/admin/reports/active-users')}>

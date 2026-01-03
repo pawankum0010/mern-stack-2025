@@ -134,11 +134,19 @@ exports.registerSuperAdmin = asyncHandler(async (req, res) => {
 });
 
 exports.register = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, dob, address } = req.body;
+  const { name, email, password, phone, dob, address, pincode } = req.body;
 
-  if (!name || !email || !password) {
+  if (!name || !email || !password || !pincode) {
     return sendError(res, {
-      message: 'Name, email, and password are required',
+      message: 'Name, email, password, and pincode are required',
+      statusCode: 400,
+    });
+  }
+
+  // Validate pincode format
+  if (!/^\d{6}$/.test(pincode)) {
+    return sendError(res, {
+      message: 'Pincode must be exactly 6 digits',
       statusCode: 400,
     });
   }
@@ -149,6 +157,24 @@ exports.register = asyncHandler(async (req, res) => {
       message: 'User already exists with this email',
       statusCode: 409,
     });
+  }
+
+  // Check if pincode exists in admin list
+  const Pincode = require('../models/pincode.model');
+  const PincodeNotification = require('../models/pincodeNotification.model');
+  const pincodeData = await Pincode.findOne({ pincode, status: 'active' });
+
+  // Create notification if pincode doesn't exist
+  if (!pincodeData) {
+    await PincodeNotification.findOneAndUpdate(
+      { pincode, status: 'pending' },
+      {
+        pincode,
+        userEmail: email,
+        status: 'pending',
+      },
+      { upsert: true, new: true }
+    );
   }
 
   let role = await Role.findOne({ name: 'customer' });
@@ -162,6 +188,7 @@ exports.register = asyncHandler(async (req, res) => {
     email,
     password,
     phone,
+    pincode,
     role: role._id,
   };
 

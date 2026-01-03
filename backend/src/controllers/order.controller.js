@@ -11,7 +11,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 exports.createOrder = asyncHandler(async (req, res) => {
   const userId = req.user.id;
-  const { shippingAddress, billingAddress, gstNumber, paymentMethod, notes, tax = 0, shipping = 0 } = req.body;
+  const { shippingAddress, billingAddress, gstNumber, paymentMethod, notes, tax = 0, shipping } = req.body;
 
   if (!shippingAddress || !shippingAddress.line1 || !shippingAddress.city) {
     return sendError(res, {
@@ -26,6 +26,27 @@ exports.createOrder = asyncHandler(async (req, res) => {
       message: 'Cart is empty',
       statusCode: 400,
     });
+  }
+
+  // Calculate shipping charge based on shipping address postalCode if not provided
+  let shippingCharge = 0;
+  if (shipping !== undefined && shipping !== null) {
+    // Use provided shipping charge
+    shippingCharge = Number(shipping);
+  } else {
+    // Calculate from shipping address postalCode
+    const Pincode = require('../models/pincode.model');
+    const postalCode = shippingAddress?.postalCode;
+    
+    if (postalCode && postalCode.length === 6) {
+      try {
+        const pincodeData = await Pincode.findOne({ pincode: postalCode, status: 'active' });
+        shippingCharge = pincodeData?.shippingCharge || 0;
+      } catch (error) {
+        // If pincode doesn't exist, shipping is 0
+        shippingCharge = 0;
+      }
+    }
   }
 
   // Validate products and build order items
@@ -60,7 +81,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     });
   }
 
-  const total = subtotal + Number(tax) + Number(shipping);
+  const total = subtotal + Number(tax) + Number(shippingCharge);
 
   // Generate order number
   const orderCount = await Order.countDocuments();
@@ -72,7 +93,7 @@ exports.createOrder = asyncHandler(async (req, res) => {
     items: orderItems,
     subtotal,
     tax: Number(tax),
-    shipping: Number(shipping),
+    shipping: Number(shippingCharge),
     total,
     shippingAddress,
     billingAddress,

@@ -400,9 +400,24 @@ await waitFor(() => {
 }, { timeout: 3000 });
 ```
 
+### 14. Pincode Management Tests (To Be Added)
+- ✅ Pincode API endpoints
+- ✅ Pincode validation
+- ✅ Shipping charge calculation
+- ✅ Notification system
+- ✅ Admin pincode management page
+- ✅ Customer signup with pincode
+
+**Test files to create:**
+- `frontend/src/api/__tests__/pincodeApi.test.js`
+- `frontend/src/pages/__tests__/PincodesPage.test.jsx`
+- `frontend/src/pages/__tests__/SignupPage.test.jsx` (update for pincode field)
+
 ## Next Steps
 
 Consider adding tests for:
+- ✅ Pincode management (API and UI)
+- ✅ Customer signup with pincode validation
 - Product listing page
 - Product details page
 - Checkout flow

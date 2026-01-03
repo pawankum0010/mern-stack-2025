@@ -66,6 +66,33 @@ const CheckoutPage = () => {
     fetchAddresses();
   }, [isAuthenticated, navigate]);
 
+  // Calculate shipping charge based on shipping address postalCode
+  useEffect(() => {
+    const calculateShipping = async () => {
+      const postalCode = formData.shippingAddress?.postalCode;
+      if (!postalCode || postalCode.length !== 6) {
+        setFormData((prev) => ({ ...prev, shipping: 0 }));
+        return;
+      }
+
+      try {
+        const { data } = await api.get(`/pincodes/code/${postalCode}`);
+        const charge = data?.data?.shippingCharge || 0;
+        setFormData((prev) => ({ ...prev, shipping: charge }));
+      } catch (error) {
+        // If pincode doesn't exist, shipping is 0
+        setFormData((prev) => ({ ...prev, shipping: 0 }));
+      }
+    };
+
+    // Calculate shipping when postalCode changes (with debounce)
+    const timeoutId = setTimeout(() => {
+      calculateShipping();
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [formData.shippingAddress?.postalCode]);
+
   const fetchCart = async () => {
     setLoading(true);
     try {
@@ -106,7 +133,7 @@ const CheckoutPage = () => {
     }
   };
 
-  const populateShippingAddress = (address) => {
+  const populateShippingAddress = async (address) => {
     setFormData((prev) => ({
       ...prev,
       shippingAddress: {
@@ -118,6 +145,20 @@ const CheckoutPage = () => {
         country: address.country || '',
       },
     }));
+
+    // Calculate shipping for this address
+    const postalCode = address.postalCode;
+    if (postalCode && postalCode.length === 6) {
+      try {
+        const { data } = await api.get(`/pincodes/code/${postalCode}`);
+        const charge = data?.data?.shippingCharge || 0;
+        setFormData((prev) => ({ ...prev, shipping: charge }));
+      } catch (error) {
+        setFormData((prev) => ({ ...prev, shipping: 0 }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, shipping: 0 }));
+    }
   };
 
   const populateBillingAddress = (address) => {
@@ -191,7 +232,7 @@ const CheckoutPage = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, checked } = e.target;
     if (name.startsWith('shippingAddress.')) {
       const field = name.split('.')[1];
       setFormData((prev) => ({
@@ -577,17 +618,6 @@ const CheckoutPage = () => {
                       </Form.Group>
                     </Col>
                     <Col sm={12} md={6}>
-                      <Form.Group controlId="shipping">
-                        <Form.Label>Shipping ($)</Form.Label>
-                        <Form.Control
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          name="shipping"
-                          value={formData.shipping}
-                          onChange={handleChange}
-                        />
-                      </Form.Group>
                     </Col>
                     <Col sm={12}>
                       <Form.Group controlId="notes">

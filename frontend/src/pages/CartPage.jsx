@@ -98,13 +98,17 @@ const CartPage = () => {
     }
   };
 
-  const calculateTotal = () => {
+  const calculateSubtotal = () => {
     if (!cart || !cart.items) return 0;
     return cart.items.reduce((total, item) => {
       const price = item.product?.price || item.price || 0;
       const quantity = item.quantity || 0;
       return total + price * quantity;
     }, 0);
+  };
+
+  const calculateTotal = () => {
+    return calculateSubtotal();
   };
 
   const handleCheckout = () => {
@@ -269,19 +273,14 @@ const CartPage = () => {
                   <>
                     <div className="d-flex justify-content-between mb-3">
                       <span>Subtotal:</span>
-                      <strong>${calculateTotal().toFixed(2)}</strong>
+                      <strong>${calculateSubtotal().toFixed(2)}</strong>
                     </div>
-                    <div className="d-flex justify-content-between mb-3">
-                      <span>Tax:</span>
-                      <span>$0.00</span>
-                    </div>
-                    <div className="d-flex justify-content-between mb-3">
-                      <span>Shipping:</span>
-                      <span>$0.00</span>
+                    <div className="text-muted small mb-3">
+                      Shipping charges will be calculated at checkout based on delivery address
                     </div>
                     <hr />
                     <div className="d-flex justify-content-between mb-4">
-                      <strong>Total:</strong>
+                      <strong>Subtotal:</strong>
                       <strong className="h5">${calculateTotal().toFixed(2)}</strong>
                     </div>
                     <div className="d-grid gap-2">

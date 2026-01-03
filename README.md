@@ -46,6 +46,7 @@ JWT_EXPIRES_IN=1h
 - Authenticate with `Authorization: Bearer <jwt-token>`. Token payload includes user id, email, and role name.
 - To bootstrap the system: call `/api/auth/register-superadmin`, then log in as superadmin and create additional roles/users.
 - `POST /api/users` requires `password` along with profile info and role (role id or name).
+- `POST /api/auth/register` (customer signup) requires `pincode` (6 digits, mandatory).
 - `dob` must be `dd-mm-yyyy`. Address is optional but accepts the following structure:
   ```json
   {
@@ -53,6 +54,8 @@ JWT_EXPIRES_IN=1h
     "email": "john@example.com",
     "password": "password123",
     "role": "customer",
+    "pincode": "123456",
+    "phone": "1234567890",
     "dob": "17-05-1995",
     "address": {
       "line1": "23 Baker Street",
@@ -91,6 +94,67 @@ JWT_EXPIRES_IN=1h
 
 All responses are JSON and errors return appropriate HTTP status codes.
 
+### Pincode & Shipping Management
+
+The system includes pincode-based shipping charge management:
+
+**Features:**
+- Admin can manage pincodes and set shipping charges for each pincode
+- Customer signup requires a 6-digit pincode (mandatory field)
+- If customer's pincode is not in admin's list, a notification is created for admin
+- Signup and cart operations are allowed even if pincode doesn't exist
+- Products cannot be shipped to pincodes not in admin's list
+- Admin receives notifications for missing pincodes with user email and requested pincode
+
+**Pincode Endpoints:**
+- `GET /api/pincodes` - List all pincodes (admin only)
+- `GET /api/pincodes/:id` - Get pincode by ID (admin only)
+- `GET /api/pincodes/code/:pincode` - Get pincode by code for shipping calculation (public)
+- `POST /api/pincodes` - Create new pincode with shipping charge (admin only)
+- `PUT /api/pincodes/:id` - Update pincode/shipping charge (admin only)
+- `DELETE /api/pincodes/:id` - Delete pincode (admin only)
+- `GET /api/pincodes/notifications` - Get pending pincode notifications (admin only)
+- `POST /api/pincodes/check` - Check if pincode exists (public)
+
+**Pincode Payload Example:**
+```json
+{
+  "pincode": "123456",
+  "shippingCharge": 50.00,
+  "status": "active",
+  "description": "Mumbai Central"
+}
+```
+
+**Signup with Pincode:**
+Customer signup now requires a pincode field:
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "phone": "1234567890",
+  "pincode": "123456",
+  "dob": "17-05-1995",
+  "address": {
+    "line1": "23 Baker Street",
+    "city": "London",
+    "country": "UK"
+  }
+}
+```
+
+**Notification System:**
+- When a customer signs up with a pincode that doesn't exist in admin's list, a notification is automatically created
+- Admin can view pending notifications in the Pincodes management page
+- Admin can click on notification to quickly add the pincode
+- Notifications are automatically resolved when the pincode is added
+
+**Frontend:**
+- Admin panel: `/admin/pincodes` - Manage pincodes and view notifications
+- Signup page: Includes mandatory 6-digit pincode field
+- Navigation: Pincodes option added under "Master" dropdown in admin panel
+
 ## Frontend Setup
 - From the `frontend` directory run `npm install`.
 - Copy your API base URL into an environment variable if needed (defaults to `http://localhost:5000/api`).
@@ -99,6 +163,8 @@ All responses are JSON and errors return appropriate HTTP status codes.
   - Protected dashboard to create, edit, and delete users (with Bootstrap styling, GSAP drawer animations).
   - Product management page for admins/superadmins to manage eCommerce catalog.
   - Public product listing page (`/shop`) with search, filters, and pagination.
+  - Pincode management page for admins to manage shipping charges by pincode.
+  - Customer signup with mandatory 6-digit pincode field.
   - Automatic token handling via bearer authentication.
 
 ## API Testing
