@@ -1,7 +1,21 @@
 import axios from 'axios';
 
+// Use relative URL in production (Vercel serves both frontend and API on same domain)
+// Use environment variable or localhost in development
+const getBaseURL = () => {
+  if (process.env.REACT_APP_API_BASE_URL) {
+    return process.env.REACT_APP_API_BASE_URL;
+  }
+  // In production (Vercel), use relative URL
+  if (process.env.NODE_ENV === 'production') {
+    return '/api';
+  }
+  // In development, use localhost
+  return 'http://localhost:5000/api';
+};
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api',
+  baseURL: getBaseURL(),
   headers: {
     'Content-Type': 'application/json',
   },
