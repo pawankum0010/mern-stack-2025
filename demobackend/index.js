@@ -30,6 +30,56 @@ const { apiLimiter } = require('./src/middlewares/security');
 const validateInput = require('./src/middlewares/validateInput');
 const { connectDB } = require('./src/config/db');
 
+// Security Headers using Helmet
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                scriptSrc: ["'self'"],
+                imgSrc: [
+                    "'self'",
+                    'data:',
+                    'https:',
+                    'http://localhost:5000', // Allow images from backend
+                    'http://localhost:3000', // Allow images from frontend
+                ],
+                connectSrc: [
+                    "'self'",
+                    'http://localhost:5000', // Allow API calls to backend
+                    'http://localhost:3000', // Allow API calls from frontend
+                ],
+                fontSrc: ["'self'"],
+                objectSrc: ["'none'"],
+                mediaSrc: ["'self'"],
+                frameSrc: ["'none'"],
+            },
+        },
+        crossOriginEmbedderPolicy: false, // Allow external resources if needed
+        crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow images to be loaded cross-origin
+        hsts: {
+            maxAge: 31536000, // 1 year
+            includeSubDomains: true,
+            preload: true,
+        },
+    })
+);
+
+// CORS Configuration
+app.use(
+    cors({
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
+
+// Body parsing middleware
+app.use(express.json({ limit: '10mb' })); // Limit request body size
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // Middleware (put before routes if you need body parsing)
 app.use(express.json());
 
