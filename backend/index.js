@@ -98,15 +98,15 @@ app.use(
   express.static(path.join(__dirname, '../uploads'))
 );
 
+connectDB();
+
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.get('/', (req, res) => {
-  res.send('Server is Running clearly');
-});
-
-// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/roles', roleRoutes);
@@ -125,21 +125,18 @@ app.use('/api/customer-activity-logs', customerActivityLogRoutes);
 app.use('/api/error-logs', errorLogRoutes);
 app.use('/api/reports', reportRoutes);
 
+
+const PORT = process.env.PORT || 5000;
+
+app.get('/', async (req, res) => {
+  res.send("Server is Running clearly")
+})
+
+
 app.use(notFound);
 app.use(errorHandler);
 
-// ---- Vercel serverless handler (NO app.listen) ----
-let isConnected = false;
+app.listen(PORT);
 
-module.exports = async (req, res) => {
-  try {
-    if (!isConnected) {
-      await connectDB();
-      isConnected = true;
-    }
-    return app(req, res);
-  } catch (err) {
-    console.error('Serverless function error:', err);
-    return res.status(500).json({ message: 'Internal Server Error', error: err.message });
-  }
-};
+
+
