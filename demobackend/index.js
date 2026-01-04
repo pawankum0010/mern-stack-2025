@@ -80,6 +80,34 @@ app.use(
 app.use(express.json({ limit: '10mb' })); // Limit request body size
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Input validation and sanitization
+app.use(validateInput);
+
+// Apply general API rate limiting to all routes
+app.use('/api', apiLimiter);
+
+// Serve static files from uploads directory with CORS headers
+app.use(
+    '/uploads',
+    (req, res, next) => {
+        // Set CORS headers for static files
+        res.header('Access-Control-Allow-Origin', process.env.FRONTEND_URL || 'http://localhost:3000');
+        res.header('Access-Control-Allow-Methods', 'GET');
+        res.header('Access-Control-Allow-Headers', 'Content-Type');
+        next();
+    },
+    express.static(path.join(__dirname, '../uploads'))
+);
+
+connectDB();
+
+app.get('/health', (req, res) => {
+    res.json({
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+    });
+});
+
 // Middleware (put before routes if you need body parsing)
 app.use(express.json());
 
