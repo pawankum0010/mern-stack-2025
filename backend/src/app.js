@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const cors = require('cors');
 const helmet = require('helmet');
 const path = require('path');
@@ -24,6 +25,7 @@ const notFound = require('./middlewares/notFound');
 const errorHandler = require('./middlewares/errorHandler');
 const { apiLimiter } = require('./middlewares/security');
 const validateInput = require('./middlewares/validateInput');
+const { connectDB } = require('./config/db');
 
 const app = express();
 
@@ -96,6 +98,8 @@ app.use(
   express.static(path.join(__dirname, '../uploads'))
 );
 
+connectDB();
+
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -121,8 +125,18 @@ app.use('/api/customer-activity-logs', customerActivityLogRoutes);
 app.use('/api/error-logs', errorLogRoutes);
 app.use('/api/reports', reportRoutes);
 
+
+const PORT = process.env.PORT || 5000;
+
+app.get('/', async (req, res) => {
+  res.send("Server is Running clearly")
+})
+
+
 app.use(notFound);
 app.use(errorHandler);
+
+app.listen(PORT);
 
 module.exports = app;
 
