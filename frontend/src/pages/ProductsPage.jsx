@@ -694,7 +694,10 @@ const ProductsPage = () => {
                     <small className="text-muted d-block mb-2">Existing Images:</small>
                     <div className="d-flex flex-wrap gap-2">
                         {existingImages.map((imageUrl, index) => {
-                          const fullUrl = imageUrl.startsWith('http') 
+                          // Handle both base64 (starts with data:image/) and URL strings
+                          const fullUrl = imageUrl.startsWith('data:image/') 
+                            ? imageUrl 
+                            : imageUrl.startsWith('http') 
                             ? imageUrl 
                             : `${api.defaults.baseURL.replace('/api', '')}${imageUrl}`;
                           return (

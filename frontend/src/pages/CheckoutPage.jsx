@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert,
@@ -57,6 +57,88 @@ const CheckoutPage = () => {
     notes: '',
   });
 
+  const populateShippingAddress = useCallback(async (address) => {
+    setFormData((prev) => ({
+      ...prev,
+      shippingAddress: {
+        line1: address.line1 || '',
+        line2: address.line2 || '',
+        city: address.city || '',
+        state: address.state || '',
+        postalCode: address.postalCode || '',
+        country: address.country || '',
+      },
+    }));
+
+    // Calculate shipping for this address
+    const postalCode = address.postalCode;
+    if (postalCode && postalCode.length === 6) {
+      try {
+        const { data } = await api.get(`/pincodes/code/${postalCode}`);
+        const charge = data?.data?.shippingCharge || 0;
+        setFormData((prev) => ({ ...prev, shipping: charge }));
+      } catch (error) {
+        setFormData((prev) => ({ ...prev, shipping: 0 }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, shipping: 0 }));
+    }
+  }, []);
+
+  const populateBillingAddress = useCallback((address) => {
+    setFormData((prev) => ({
+      ...prev,
+      billingAddress: {
+        line1: address.line1 || '',
+        line2: address.line2 || '',
+        city: address.city || '',
+        state: address.state || '',
+        postalCode: address.postalCode || '',
+        country: address.country || '',
+      },
+    }));
+  }, []);
+
+  const fetchCart = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await api.get('/cart');
+      setCart(data?.data);
+    } catch (error) {
+      setError(error.message || 'Failed to load cart');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchAddresses = useCallback(async () => {
+    try {
+      const { data } = await api.get('/addresses');
+      const addresses = data?.data || [];
+      const shipping = addresses.filter((addr) => addr.type === 'shipping');
+      const billing = addresses.filter((addr) => addr.type === 'billing');
+      
+      setSavedAddresses({ shipping, billing });
+      
+      // Auto-select default addresses if available
+      const defaultShipping = shipping.find((addr) => addr.isDefault);
+      const defaultBilling = billing.find((addr) => addr.isDefault);
+      
+      if (defaultShipping) {
+        setSelectedShippingAddress(defaultShipping._id);
+        populateShippingAddress(defaultShipping);
+      }
+      
+      if (defaultBilling) {
+        setSelectedBillingAddress(defaultBilling._id);
+        populateBillingAddress(defaultBilling);
+      }
+    } catch (error) {
+      console.error('Failed to fetch addresses:', error);
+      // Don't show error, just allow manual entry
+    }
+  }, [populateShippingAddress, populateBillingAddress]);
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/checkout' } });
@@ -64,7 +146,7 @@ const CheckoutPage = () => {
     }
     fetchCart();
     fetchAddresses();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, fetchCart, fetchAddresses]);
 
   // Calculate shipping charge based on shipping address postalCode
   useEffect(() => {
@@ -92,88 +174,6 @@ const CheckoutPage = () => {
 
     return () => clearTimeout(timeoutId);
   }, [formData.shippingAddress?.postalCode]);
-
-  const fetchCart = async () => {
-    setLoading(true);
-    try {
-      const { data } = await api.get('/cart');
-      setCart(data?.data);
-    } catch (error) {
-      setError(error.message || 'Failed to load cart');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchAddresses = async () => {
-    try {
-      const { data } = await api.get('/addresses');
-      const addresses = data?.data || [];
-      const shipping = addresses.filter((addr) => addr.type === 'shipping');
-      const billing = addresses.filter((addr) => addr.type === 'billing');
-      
-      setSavedAddresses({ shipping, billing });
-      
-      // Auto-select default addresses if available
-      const defaultShipping = shipping.find((addr) => addr.isDefault);
-      const defaultBilling = billing.find((addr) => addr.isDefault);
-      
-      if (defaultShipping) {
-        setSelectedShippingAddress(defaultShipping._id);
-        populateShippingAddress(defaultShipping);
-      }
-      
-      if (defaultBilling) {
-        setSelectedBillingAddress(defaultBilling._id);
-        populateBillingAddress(defaultBilling);
-      }
-    } catch (error) {
-      console.error('Failed to fetch addresses:', error);
-      // Don't show error, just allow manual entry
-    }
-  };
-
-  const populateShippingAddress = async (address) => {
-    setFormData((prev) => ({
-      ...prev,
-      shippingAddress: {
-        line1: address.line1 || '',
-        line2: address.line2 || '',
-        city: address.city || '',
-        state: address.state || '',
-        postalCode: address.postalCode || '',
-        country: address.country || '',
-      },
-    }));
-
-    // Calculate shipping for this address
-    const postalCode = address.postalCode;
-    if (postalCode && postalCode.length === 6) {
-      try {
-        const { data } = await api.get(`/pincodes/code/${postalCode}`);
-        const charge = data?.data?.shippingCharge || 0;
-        setFormData((prev) => ({ ...prev, shipping: charge }));
-      } catch (error) {
-        setFormData((prev) => ({ ...prev, shipping: 0 }));
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, shipping: 0 }));
-    }
-  };
-
-  const populateBillingAddress = (address) => {
-    setFormData((prev) => ({
-      ...prev,
-      billingAddress: {
-        line1: address.line1 || '',
-        line2: address.line2 || '',
-        city: address.city || '',
-        state: address.state || '',
-        postalCode: address.postalCode || '',
-        country: address.country || '',
-      },
-    }));
-  };
 
   const handleShippingAddressSelect = (e) => {
     const addressId = e.target.value;

@@ -13,7 +13,7 @@ import {
   Spinner,
   Table,
 } from 'react-bootstrap';
-import { FiEdit2, FiTrash2, FiPlus, FiX, FiBell } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiBell } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';

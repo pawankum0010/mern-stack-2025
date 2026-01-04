@@ -12,8 +12,6 @@ import {
   Table,
   Alert,
   ProgressBar,
-  Tabs,
-  Tab,
 } from 'react-bootstrap';
 import { FiRefreshCw, FiFilter, FiX, FiUser, FiCalendar, FiTrendingUp, FiList, FiClock } from 'react-icons/fi';
 

@@ -164,7 +164,10 @@ const ProductDetailsPage = () => {
                 {product.images && product.images.length > 0 ? (
                   <Carousel interval={null} variant="dark">
                     {product.images.map((image, index) => {
-                      const imageUrl = image.startsWith('http')
+                      // Handle both base64 (starts with data:image/) and URL strings
+                      const imageUrl = image.startsWith('data:image/')
+                        ? image
+                        : image.startsWith('http')
                         ? image
                         : `${api.defaults.baseURL.replace('/api', '')}${image}`;
                       return (
@@ -278,7 +281,16 @@ const ProductDetailsPage = () => {
                     {product.weight && (
                       <tr>
                         <th>Weight</th>
-                        <td>{product.weight} {product.weightUnit || 'kg'}</td>
+                        <td>
+                          {product.weight}{' '}
+                          {typeof product.weightUnit === 'object' && product.weightUnit?.symbol
+                            ? product.weightUnit.symbol
+                            : typeof product.weightUnit === 'object' && product.weightUnit?.name
+                            ? product.weightUnit.name
+                            : typeof product.weightUnit === 'string'
+                            ? product.weightUnit
+                            : 'kg'}
+                        </td>
                       </tr>
                     )}
                     {product.dimensions && (
@@ -299,7 +311,15 @@ const ProductDetailsPage = () => {
                     {product.size && (
                       <tr>
                         <th>Size</th>
-                        <td>{product.size}</td>
+                        <td>
+                          {typeof product.size === 'object' && product.size?.name
+                            ? product.size.name
+                            : typeof product.size === 'object' && product.size?.code
+                            ? product.size.code
+                            : typeof product.size === 'string'
+                            ? product.size
+                            : '-'}
+                        </td>
                       </tr>
                     )}
                     {product.brand && (

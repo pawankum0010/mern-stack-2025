@@ -39,13 +39,22 @@ exports.createProduct = asyncHandler(async (req, res) => {
     });
   }
 
-  // Handle uploaded files - map to URLs
-  let imageUrls = [];
+  // Handle uploaded files - convert to base64 strings for MongoDB storage
+  let imageBase64Array = [];
   if (req.files && req.files.length > 0) {
-    imageUrls = req.files.map((file) => `/uploads/products/${file.filename}`);
+    // Convert each file buffer to base64 string
+    imageBase64Array = req.files.map((file) => {
+      const base64 = file.buffer.toString('base64');
+      const mimeType = file.mimetype || 'image/jpeg';
+      return `data:${mimeType};base64,${base64}`;
+    });
   } else if (imagesFromBody) {
-    // Support both file uploads and URL strings
-    imageUrls = Array.isArray(imagesFromBody) ? imagesFromBody : [imagesFromBody];
+    // Support both file uploads and base64 strings (for direct base64 submission)
+    if (Array.isArray(imagesFromBody)) {
+      imageBase64Array = imagesFromBody;
+    } else {
+      imageBase64Array = [imagesFromBody];
+    }
   }
 
   // Parse tags if it's a string
@@ -95,7 +104,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
     sku,
     category: category || undefined,
     tags: parsedTags,
-    images: imageUrls,
+    images: imageBase64Array,
     stock: stock !== undefined ? Number(stock) : 0,
     status: status || 'active',
     featured: featured === true || featured === 'true',
@@ -325,14 +334,12 @@ exports.getProductById = asyncHandler(async (req, res) => {
 
 exports.updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const path = require('path');
-  const fs = require('fs');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid product id', statusCode: 400 });
   }
 
-  // Get existing product to check for old images
+  // Get existing product
   const existingProduct = await Product.findById(id);
   if (!existingProduct) {
     return sendNotFound(res, { message: 'Product not found' });
@@ -340,75 +347,36 @@ exports.updateProduct = asyncHandler(async (req, res) => {
 
   const updates = { ...req.body };
 
-  // Handle uploaded files
+  // Handle uploaded files - convert to base64 strings
   if (req.files && req.files.length > 0) {
-    const newImageUrls = req.files.map((file) => `/uploads/products/${file.filename}`);
+    const newImageBase64Array = req.files.map((file) => {
+      const base64 = file.buffer.toString('base64');
+      const mimeType = file.mimetype || 'image/jpeg';
+      return `data:${mimeType};base64,${base64}`;
+    });
     
-    // If new images are uploaded, replace old ones (delete old files if they exist)
-    if (updates.replaceImages !== 'false' && existingProduct.images && existingProduct.images.length > 0) {
-      const uploadsDir = path.join(__dirname, '../../uploads');
-      existingProduct.images.forEach((imageUrl) => {
-        if (imageUrl.startsWith('/uploads/')) {
-          const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
-          if (fs.existsSync(filePath)) {
-            try {
-              fs.unlinkSync(filePath);
-            } catch (err) {
-              console.error(`Error deleting old image: ${filePath}`, err);
-            }
-          }
-        }
-      });
+    // If new images are uploaded, replace old ones
+    if (updates.replaceImages !== 'false') {
+      updates.images = newImageBase64Array;
+    } else {
+      // Append to existing images
+      const existingImages = existingProduct.images || [];
+      updates.images = [...existingImages, ...newImageBase64Array];
     }
-    
-    updates.images = newImageUrls;
   } else if (updates.images !== undefined) {
-    // Handle explicit images array (e.g., empty array to remove all images)
+    // Handle explicit images array (could be base64 strings or empty array)
     if (Array.isArray(updates.images)) {
-      if (updates.images.length === 0) {
-        // Remove all images - delete files
-        const uploadsDir = path.join(__dirname, '../../uploads');
-        existingProduct.images.forEach((imageUrl) => {
-          if (imageUrl.startsWith('/uploads/')) {
-            const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
-            if (fs.existsSync(filePath)) {
-              try {
-                fs.unlinkSync(filePath);
-              } catch (err) {
-                console.error(`Error deleting image file: ${filePath}`, err);
-              }
-            }
-          }
-        });
-      }
-      // Set to the provided array (could be empty or array of URLs)
       updates.images = updates.images;
     } else if (typeof updates.images === 'string') {
       try {
         // Try to parse as JSON
         const parsedImages = JSON.parse(updates.images);
         if (Array.isArray(parsedImages)) {
-          if (parsedImages.length === 0) {
-            // Remove all images
-            const uploadsDir = path.join(__dirname, '../../uploads');
-            existingProduct.images.forEach((imageUrl) => {
-              if (imageUrl.startsWith('/uploads/')) {
-                const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
-                if (fs.existsSync(filePath)) {
-                  try {
-                    fs.unlinkSync(filePath);
-                  } catch (err) {
-                    console.error(`Error deleting image file: ${filePath}`, err);
-                  }
-                }
-              }
-            });
-          }
           updates.images = parsedImages;
         }
       } catch (e) {
-        // Not JSON, keep existing images
-        delete updates.images;
+        // Not JSON, treat as single base64 string
+        updates.images = [updates.images];
       }
     }
   }
@@ -504,8 +472,6 @@ exports.updateProduct = asyncHandler(async (req, res) => {
 
 exports.deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const path = require('path');
-  const fs = require('fs');
 
   if (!isValidObjectId(id)) {
     return sendError(res, { message: 'Invalid product id', statusCode: 400 });
@@ -517,22 +483,8 @@ exports.deleteProduct = asyncHandler(async (req, res) => {
     return sendNotFound(res, { message: 'Product not found' });
   }
 
-  // Delete associated image files
-  if (product.images && product.images.length > 0) {
-    const uploadsDir = path.join(__dirname, '../../uploads');
-    product.images.forEach((imageUrl) => {
-      if (imageUrl.startsWith('/uploads/')) {
-        const filePath = path.join(uploadsDir, imageUrl.replace('/uploads/', ''));
-        if (fs.existsSync(filePath)) {
-          try {
-            fs.unlinkSync(filePath);
-          } catch (err) {
-            console.error(`Error deleting image file: ${filePath}`, err);
-          }
-        }
-      }
-    });
-  }
+  // Images are stored in MongoDB, so no file deletion needed
+  // MongoDB will automatically clean up when document is deleted
 
   await Product.findByIdAndDelete(id);
 

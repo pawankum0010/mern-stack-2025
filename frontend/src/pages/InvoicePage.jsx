@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Spinner, Alert, Button } from 'react-bootstrap';
 
@@ -13,14 +13,7 @@ const InvoicePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-    loadInvoice();
-  }, [orderId, isAuthenticated]);
-
-  const loadInvoice = async () => {
+  const loadInvoice = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -37,7 +30,14 @@ const InvoicePage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orderId]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      return;
+    }
+    loadInvoice();
+  }, [orderId, isAuthenticated, loadInvoice]);
 
   const handleDownload = async () => {
     try {

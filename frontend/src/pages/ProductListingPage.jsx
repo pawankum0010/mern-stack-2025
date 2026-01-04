@@ -269,7 +269,9 @@ const ProductListingPage = () => {
                             style={{
                               height: '200px',
                               backgroundImage: `url(${
-                                product.images[0].startsWith('http')
+                                product.images[0].startsWith('data:image/')
+                                  ? product.images[0]
+                                  : product.images[0].startsWith('http')
                                   ? product.images[0]
                                   : `${api.defaults.baseURL.replace('/api', '')}${product.images[0]}`
                               })`,

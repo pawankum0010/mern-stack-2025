@@ -86,7 +86,7 @@ const ActiveUsersReportPage = () => {
       setLoading(false);
       fetchingRef.current = false;
     }
-  }, [filters, pagination.page]);
+  }, [filters, pagination.page, pagination.limit]);
 
   useEffect(() => {
     if (!isAuthenticated) {

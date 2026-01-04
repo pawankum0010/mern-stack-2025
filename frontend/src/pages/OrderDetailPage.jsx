@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   Alert,
@@ -35,15 +35,19 @@ const OrderDetailPage = () => {
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
   const isAdminRoute = location.pathname.startsWith('/admin/orders');
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
+  const fetchActivityLogs = useCallback(async () => {
+    setLoadingLogs(true);
+    try {
+      const { data } = await api.get(`/orders/${id}/activity-logs`);
+      setActivityLogs(data?.data || []);
+    } catch (error) {
+      console.error('Failed to load activity logs:', error);
+    } finally {
+      setLoadingLogs(false);
     }
-    fetchOrder();
-  }, [id, isAuthenticated, navigate]);
+  }, [id]);
 
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -56,19 +60,15 @@ const OrderDetailPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, fetchActivityLogs]);
 
-  const fetchActivityLogs = async () => {
-    setLoadingLogs(true);
-    try {
-      const { data } = await api.get(`/orders/${id}/activity-logs`);
-      setActivityLogs(data?.data || []);
-    } catch (error) {
-      console.error('Failed to load activity logs:', error);
-    } finally {
-      setLoadingLogs(false);
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
     }
-  };
+    fetchOrder();
+  }, [id, isAuthenticated, navigate, fetchOrder]);
 
   const handleStatusUpdate = async (e) => {
     e.preventDefault();
