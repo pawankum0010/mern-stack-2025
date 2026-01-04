@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Badge,
@@ -24,18 +24,13 @@ const OrdersPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [reordering, setReordering] = useState(null);
+  const fetchingRef = useRef(false);
 
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    fetchOrders();
-  }, [isAuthenticated, navigate]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
+    if (fetchingRef.current) return; // Prevent duplicate calls
+    fetchingRef.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -45,8 +40,17 @@ const OrdersPage = () => {
       setError(error.message || 'Failed to load orders');
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    fetchOrders();
+  }, [isAuthenticated, navigate, fetchOrders]);
 
   const getStatusBadge = (status) => {
     const variants = {
@@ -200,7 +204,7 @@ const OrdersPage = () => {
                             <Button
                               size="sm"
                               variant="outline-primary"
-                              onClick={() => navigate(`/orders/${order._id}`)}
+                              onClick={() => navigate(isAdmin ? `/admin/orders/${order._id}` : `/orders/${order._id}`)}
                               title="View Details"
                             >
                               <FiEye />

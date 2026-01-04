@@ -61,10 +61,12 @@ function App() {
           <Route path="/admin/reports/active-users" element={<ActiveUsersReportPage />} />
           <Route path="/admin/reports/highest-selling-products" element={<HighestSellingProductsPage />} />
           <Route path="/admin/reports/orders-status" element={<OrdersStatusReportPage />} />
+          <Route path="/admin/orders" element={<OrdersPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<OrderDetailPage />} />
+          <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
           <Route path="/invoices/:id" element={<InvoicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/addresses" element={<AddressesPage />} />

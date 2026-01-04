@@ -73,7 +73,7 @@ const addressSchema = new mongoose.Schema(
 // Note: The pre-save hook handles setting defaults, this index is just for optimization
 addressSchema.index({ user: 1, type: 1 });
 
-addressSchema.pre('save', async function setDefaultAddress(next) {
+addressSchema.pre('save', async function setDefaultAddress() {
   if (this.isDefault && this.isModified('isDefault')) {
     // Unset other default addresses of the same type for this user
     await this.constructor.updateMany(
@@ -86,7 +86,6 @@ addressSchema.pre('save', async function setDefaultAddress(next) {
       { $set: { isDefault: false } }
     );
   }
-  next();
 });
 
 addressSchema.set('toJSON', {

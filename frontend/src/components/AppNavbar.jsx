@@ -98,7 +98,9 @@ const AppNavbar = () => {
             )}
                   {user && (
                     <>
-                      <Nav.Link onClick={() => navigate('/orders')}>My Orders</Nav.Link>
+                      <Nav.Link onClick={() => navigate(isAdmin ? '/admin/orders' : '/orders')}>
+                        {isAdmin ? 'Orders' : 'My Orders'}
+                      </Nav.Link>
                       {isCustomer && (
                         <>
                           <Nav.Link onClick={() => navigate('/profile')}>Profile</Nav.Link>

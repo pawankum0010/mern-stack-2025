@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import {
   Alert,
   Badge,
@@ -23,6 +23,7 @@ const OrderDetailPage = () => {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [order, setOrder] = useState(null);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,7 @@ const OrderDetailPage = () => {
   const [status, setStatus] = useState('');
 
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
+  const isAdminRoute = location.pathname.startsWith('/admin/orders');
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -191,7 +193,7 @@ const OrderDetailPage = () => {
                     </Button>
                   </>
                 )}
-                <Button variant="outline-secondary" onClick={() => navigate('/orders')}>
+                <Button variant="outline-secondary" onClick={() => navigate(isAdminRoute ? '/admin/orders' : '/orders')}>
                   Back to Orders
                 </Button>
               </div>
