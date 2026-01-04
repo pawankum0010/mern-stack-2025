@@ -154,6 +154,11 @@ exports.updateMyProfile = asyncHandler(async (req, res) => {
     updates.email = updates.email.toLowerCase();
   }
 
+  // Map address.postalCode to pincode if pincode is not provided
+  if (updates.address?.postalCode && !updates.pincode) {
+    updates.pincode = updates.address.postalCode;
+  }
+
   if (dob) {
     try {
       const dateOfBirth = parseDob(dob);

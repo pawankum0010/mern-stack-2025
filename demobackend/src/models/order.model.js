@@ -118,15 +118,14 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
-orderSchema.pre('save', async function (next) {
+orderSchema.pre('save', async function () {
   if (!this.orderNumber) {
-    const count = await mongoose.model('Order').countDocuments();
+    const count = await this.constructor.countDocuments();
     this.orderNumber = `ORD-${Date.now()}-${String(count + 1).padStart(6, '0')}`;
   }
   if (this.status === 'approved' && !this.approvedAt) {
     this.approvedAt = new Date();
   }
-  next();
 });
 
 orderSchema.set('toJSON', {
