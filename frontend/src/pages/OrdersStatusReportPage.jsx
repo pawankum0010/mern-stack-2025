@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Badge,
@@ -32,30 +32,13 @@ const OrdersStatusReportPage = () => {
     startDate: '',
     endDate: '',
   });
+  const fetchingRef = useRef(false);
 
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-    fetchReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isAdmin]);
-
-  useEffect(() => {
-    if (isAdmin && isAuthenticated) {
-      fetchReport();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
-
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
+    if (fetchingRef.current) return; // Prevent duplicate calls
+    fetchingRef.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -72,8 +55,21 @@ const OrdersStatusReportPage = () => {
       console.error('Error fetching report:', err);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+    fetchReport();
+  }, [isAuthenticated, isAdmin, fetchReport, navigate]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }));

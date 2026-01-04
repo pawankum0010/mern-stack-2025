@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Badge,
@@ -39,31 +39,11 @@ const ActiveUsersReportPage = () => {
     total: 0,
     pages: 0,
   });
+  const fetchingRef = useRef(false);
 
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    if (!isAdmin) {
-      navigate('/');
-      return;
-    }
-    fetchAllUsers();
-    fetchReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isAdmin, pagination.page]);
-
-  useEffect(() => {
-    if (isAdmin && isAuthenticated) {
-      fetchReport();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, pagination.page]);
-
-  const fetchAllUsers = async () => {
+  const fetchAllUsers = useCallback(async () => {
     setLoadingUsers(true);
     try {
       const { data } = await api.get('/users');
@@ -74,9 +54,11 @@ const ActiveUsersReportPage = () => {
     } finally {
       setLoadingUsers(false);
     }
-  };
+  }, []);
 
-  const fetchReport = async () => {
+  const fetchReport = useCallback(async () => {
+    if (fetchingRef.current) return; // Prevent duplicate calls
+    fetchingRef.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -102,8 +84,22 @@ const ActiveUsersReportPage = () => {
       console.error('Error fetching report:', err);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  };
+  }, [filters, pagination.page]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    if (!isAdmin) {
+      navigate('/');
+      return;
+    }
+    fetchAllUsers();
+    fetchReport();
+  }, [isAuthenticated, isAdmin, fetchAllUsers, fetchReport, navigate]);
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }));
