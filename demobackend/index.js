@@ -111,6 +111,24 @@ app.get('/health', (req, res) => {
 // Middleware (put before routes if you need body parsing)
 app.use(express.json());
 
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/vendors', vendorRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/addresses', addressRoutes);
+app.use('/api/states', stateRoutes);
+app.use('/api/weight-units', weightUnitRoutes);
+app.use('/api/sizes', sizeRoutes);
+app.use('/api/pincodes', pincodeRoutes);
+app.use('/api/customer-activity-logs', customerActivityLogRoutes);
+app.use('/api/error-logs', errorLogRoutes);
+app.use('/api/reports', reportRoutes);
+
 app.get('/', (req, res) => {
     res.status(200).json({
         message: 'API is running...',
