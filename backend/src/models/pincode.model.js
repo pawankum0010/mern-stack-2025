@@ -7,7 +7,6 @@ const pincodeSchema = new mongoose.Schema(
       required: [true, 'Pincode is required'],
       trim: true,
       unique: true,
-      index: true,
       validate: {
         validator: function (v) {
           return /^\d{6}$/.test(v);
@@ -36,8 +35,8 @@ const pincodeSchema = new mongoose.Schema(
 );
 
 // Index for faster queries
-pincodeSchema.index({ pincode: 1 });
-pincodeSchema.index({ status: 1 });
+// pincodeSchema.index({ pincode: 1 });
+// pincodeSchema.index({ status: 1 });
 
 const Pincode = mongoose.model('Pincode', pincodeSchema);
 
