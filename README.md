@@ -16,12 +16,18 @@
 - From the `backend` directory run `npm install`.
 - Start the backend in dev mode with `npm run dev` (uses Nodemon) or `npm start` for a one-off run.
 
-### Environment Variables (`backend/.env`)
+### Environment Variables (`demobackend/.env`)
 ```
 PORT=5000
 MONGODB_URI=your-mongodb-connection-string
 JWT_SECRET=change-me
 JWT_EXPIRES_IN=1h
+```
+
+### Environment Variables (`frontend/.env`)
+```
+#REACT_APP_API_BASE_URL=http://localhost:5000/api
+#REACT_APP_API_BASE_URL=https://mern-stack-2025-lqd8.vercel.app/api
 ```
 
 ### Available REST Endpoints
