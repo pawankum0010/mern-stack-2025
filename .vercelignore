@@ -1,8 +1,8 @@
 # Files to ignore during Vercel deployment
 node_modules/
-backend/node_modules/
+demobackend/node_modules/
 frontend/node_modules/
-backend/uploads/
+demobackend/uploads/
 .env
 .env.local
 .env.*.local
