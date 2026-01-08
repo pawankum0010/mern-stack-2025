@@ -2,21 +2,21 @@
 
 https://mern-stack-2025-liard.vercel.app/
 
-# Install Dependencies for Backend
+# Install Dependencies for demobackend
 1. npm i express mongoose
 2. npm install -g nodemon
 
 # Execute program
-1. nodemon, npm run dev [backend] 
+1. nodemon, npm run dev [demobackend] 
 1. npm start [fornend]
 
 # Install React
 1. npx create-react-app front-end
 
-## Backend Setup
-- Create a `backend/.env` file with the values shown below.
-- From the `backend` directory run `npm install`.
-- Start the backend in dev mode with `npm run dev` (uses Nodemon) or `npm start` for a one-off run.
+## demobackend Setup
+- Create a `demobackend/.env` file with the values shown below.
+- From the `demobackend` directory run `npm install`.
+- Start the demobackend in dev mode with `npm run dev` (uses Nodemon) or `npm start` for a one-off run.
 
 ### Environment Variables (`demobackend/.env`)
 ```
