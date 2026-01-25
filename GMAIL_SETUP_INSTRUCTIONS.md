@@ -37,7 +37,7 @@ Add these variables for **Production** environment:
 | `SMTP_USER` | Your full Gmail address | `pawankum0010@gmail.com` |
 | `SMTP_PASS` | The 16-character app password (NO SPACES) | `abcdefghijklmnop` |
 | `SMTP_FROM_NAME` | Display name | `Soft Chilli` |
-| `FRONTEND_URL` | Your Vercel frontend URL | `https://mern-stack-2025-liard.vercel.app` |
+| `FRONTEND_URL` | Your Vercel frontend URL (no trailing slash) | `https://mern-stack-2025-liard.vercel.app` |
 
 ### Important Notes:
 
@@ -58,7 +58,8 @@ Add these variables for **Production** environment:
 4. **FRONTEND_URL**:
    - Should be your actual Vercel frontend URL
    - Use `https://` not `http://`
-   - No trailing slash
+   - No trailing slash (the code will handle it)
+   - **For your project, set it to:** `https://mern-stack-2025-liard.vercel.app`
 
 ## Step 4: Redeploy
 

@@ -99,8 +99,9 @@ The logs will now show:
 
 Make sure `FRONTEND_URL` is set to your actual frontend URL:
 - Example: `https://mern-stack-2025-liard.vercel.app`
-- Should NOT have trailing slash
+- Should NOT have trailing slash (code will handle it automatically)
 - Should use `https://` not `http://`
+- **For your project, set:** `FRONTEND_URL=https://mern-stack-2025-liard.vercel.app`
 
 ## Testing SMTP Configuration
 
