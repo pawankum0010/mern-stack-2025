@@ -186,8 +186,14 @@ exports.updateMyProfile = asyncHandler(async (req, res) => {
     return sendNotFound(res, { message: 'User not found' });
   }
 
+  // Preserve pincode if not provided in updates
+  if (!updates.pincode && user.pincode) {
+    updates.pincode = user.pincode;
+  }
+
   Object.assign(user, updates);
-  await user.save();
+  // Use validateBeforeSave: false for partial updates to avoid validation errors on unchanged required fields
+  await user.save({ validateBeforeSave: false });
 
   const populated = await user.populate('role', 'name');
 
@@ -255,8 +261,14 @@ exports.updateUser = asyncHandler(async (req, res) => {
     return sendNotFound(res, { message: 'User not found' });
   }
 
+  // Preserve pincode if not provided in updates
+  if (!updates.pincode && user.pincode) {
+    updates.pincode = user.pincode;
+  }
+
   Object.assign(user, updates);
-  await user.save();
+  // Use validateBeforeSave: false for partial updates to avoid validation errors on unchanged required fields
+  await user.save({ validateBeforeSave: false });
 
   const populated = await user.populate('role', 'name');
 

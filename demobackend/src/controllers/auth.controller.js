@@ -353,7 +353,8 @@ exports.resetPassword = asyncHandler(async (req, res) => {
   user.password = password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
-  await user.save();
+  // Skip validation since we're only updating password and reset token fields
+  await user.save({ validateBeforeSave: false });
 
   // Log password reset activity (only for customers)
   const populatedUser = await user.populate('role', 'name');
