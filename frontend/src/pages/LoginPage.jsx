@@ -68,7 +68,7 @@ const LoginPage = () => {
                     type="email"
                     name="email"
                     value={formState.email}
-                    placeholder="admin@example.com"
+                    placeholder="Enter your email"
                     onChange={handleChange}
                     required
                   />
@@ -81,7 +81,7 @@ const LoginPage = () => {
                       type={showPassword ? 'text' : 'password'}
                       name="password"
                       value={formState.password}
-                      placeholder="••••••••"
+                      placeholder="Enter your password"
                       onChange={handleChange}
                       required
                       minLength={6}
