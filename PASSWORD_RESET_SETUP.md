@@ -30,13 +30,39 @@ SMTP_PASS=your-app-password
 SMTP_FROM_NAME=Soft Chilli
 ```
 
-### 3. Gmail Setup (Example)
-If using Gmail:
-1. Enable 2-Factor Authentication on your Google account
-2. Generate an App Password:
-   - Go to Google Account → Security → 2-Step Verification → App passwords
-   - Create an app password for "Mail"
-   - Use this password in `SMTP_PASS`
+### 3. Gmail Setup (Example) - ⚠️ REQUIRED STEPS
+
+**IMPORTANT:** Gmail does NOT accept regular passwords. You MUST use an App Password.
+
+**Step-by-Step:**
+
+1. **Enable 2-Factor Authentication:**
+   - Go to https://myaccount.google.com/security
+   - Enable "2-Step Verification"
+
+2. **Generate App Password:**
+   - Go to https://myaccount.google.com/apppasswords
+   - Select "Mail" as app
+   - Select "Other (Custom name)" as device, enter "Vercel"
+   - Click "Generate"
+   - Copy the 16-character password (remove spaces!)
+
+3. **Vercel Environment Variables:**
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=your-email@gmail.com          (FULL email address)
+   SMTP_PASS=abcdefghijklmnop              (16-char app password, NO SPACES)
+   SMTP_FROM_NAME=Soft Chilli
+   FRONTEND_URL=https://your-frontend.vercel.app
+   ```
+
+   **Critical Notes:**
+   - `SMTP_PASS` must be the App Password (NOT your regular Gmail password)
+   - Remove all spaces from the app password
+   - `SMTP_USER` must be your full email (e.g., `pawankum0010@gmail.com`)
+   - After adding variables, **redeploy** your Vercel project
 
 ### 4. Other SMTP Providers
 For other providers (Outlook, SendGrid, etc.), update:

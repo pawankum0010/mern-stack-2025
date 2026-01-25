@@ -50,16 +50,43 @@ The logs will now show:
   - Port 465 → `SMTP_SECURE=true`
 - Some SMTP providers block connections from cloud platforms - check firewall rules
 
-### 4. Gmail Specific Issues
+### 4. Gmail Specific Issues (IMPORTANT!)
 
-**If using Gmail:**
-1. Enable 2-Factor Authentication
-2. Generate App Password:
-   - Google Account → Security → 2-Step Verification → App passwords
-   - Select "Mail" and device
-   - Copy the 16-character password
-   - Use this in `SMTP_PASS`
-3. Make sure "Less secure app access" is NOT needed (deprecated)
+**Gmail does NOT accept regular passwords for SMTP!** You MUST use an App Password.
+
+**Step-by-Step Gmail Setup:**
+
+1. **Enable 2-Factor Authentication** (Required):
+   - Go to https://myaccount.google.com/security
+   - Enable "2-Step Verification" if not already enabled
+   - Follow the setup process
+
+2. **Generate App Password**:
+   - Go to https://myaccount.google.com/apppasswords
+   - Or: Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" as the app
+   - Select "Other (Custom name)" as device, enter "Vercel" or "Soft Chilli"
+   - Click "Generate"
+   - Copy the 16-character password (it will look like: `abcd efgh ijkl mnop`)
+   - **Remove spaces** - use it as one string: `abcdefghijklmnop`
+
+3. **Vercel Environment Variables** - Set these EXACTLY:
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASS=abcdefghijklmnop  (16-character app password, NO SPACES)
+   SMTP_FROM_NAME=Soft Chilli
+   FRONTEND_URL=https://mern-stack-2025-liard.vercel.app
+   ```
+
+4. **Important Notes:**
+   - Use your FULL Gmail address in `SMTP_USER` (e.g., `pawankum0010@gmail.com`)
+   - Use the 16-character App Password in `SMTP_PASS` (NOT your regular Gmail password)
+   - Remove all spaces from the app password
+   - `SMTP_SECURE=false` for port 587 (TLS)
+   - After adding variables, **redeploy** your Vercel project
 
 ### 5. Vercel Environment Variables
 
