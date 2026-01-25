@@ -261,9 +261,18 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
   const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
 
+  console.log('Password reset request initiated:', {
+    email: user.email,
+    frontendUrl,
+    resetUrlGenerated: true,
+    timestamp: new Date().toISOString(),
+  });
+
   try {
     // Send email
     await sendPasswordResetEmail(user.email, resetToken, resetUrl);
+
+    console.log('Password reset email sent successfully for:', user.email);
 
     sendSuccess(res, {
       message: 'Password reset email sent successfully. Please check your email.',
@@ -275,10 +284,31 @@ exports.forgotPassword = asyncHandler(async (req, res) => {
     user.resetPasswordExpires = undefined;
     await user.save({ validateBeforeSave: false });
 
-    console.error('Error sending password reset email:', error);
+    console.error('Password reset email failed - Detailed Error:', {
+      email: user.email,
+      errorMessage: error.message,
+      errorCode: error.code,
+      originalError: error.originalError?.message,
+      stack: error.stack,
+      smtpConfig: {
+        host: process.env.SMTP_HOST ? 'SET' : 'NOT SET',
+        port: process.env.SMTP_PORT ? 'SET' : 'NOT SET',
+        user: process.env.SMTP_USER ? 'SET' : 'NOT SET',
+        pass: process.env.SMTP_PASS ? 'SET' : 'NOT SET',
+        fromName: process.env.SMTP_FROM_NAME ? 'SET' : 'NOT SET',
+      },
+    });
+
+    // Return more descriptive error message
+    const errorMessage = error.message || 'Failed to send password reset email. Please check SMTP configuration.';
+    
     return sendError(res, {
-      message: 'Failed to send password reset email. Please try again later.',
+      message: errorMessage,
       statusCode: 500,
+      details: process.env.NODE_ENV === 'development' ? {
+        code: error.code,
+        originalMessage: error.originalError?.message,
+      } : undefined,
     });
   }
 });

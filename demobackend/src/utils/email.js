@@ -2,21 +2,58 @@ const nodemailer = require('nodemailer');
 
 // Create reusable transporter object using SMTP
 const createTransporter = () => {
+  const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const smtpPort = parseInt(process.env.SMTP_PORT || '587');
+  const smtpSecure = process.env.SMTP_SECURE === 'true';
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  // Log configuration (without sensitive data)
+  console.log('SMTP Configuration:', {
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    user: smtpUser ? `${smtpUser.substring(0, 3)}***` : 'NOT SET',
+    pass: smtpPass ? '***SET***' : 'NOT SET',
+  });
+
+  // Validate required fields
+  if (!smtpUser || !smtpPass) {
+    const error = new Error('SMTP_USER and SMTP_PASS environment variables are required');
+    console.error('SMTP Configuration Error:', error.message);
+    throw error;
+  }
+
   return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure, // true for 465, false for other ports
     auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
+      user: smtpUser,
+      pass: smtpPass,
     },
+    // Add connection timeout and retry options
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
   });
 };
 
 // Send password reset email
 const sendPasswordResetEmail = async (email, resetToken, resetUrl) => {
+  console.log('Attempting to send password reset email:', {
+    to: email,
+    resetUrl: resetUrl.substring(0, 50) + '...',
+    timestamp: new Date().toISOString(),
+  });
+
   try {
     const transporter = createTransporter();
+
+    // Verify connection before sending
+    console.log('Verifying SMTP connection...');
+    await transporter.verify();
+    console.log('SMTP connection verified successfully');
 
     const mailOptions = {
       from: `"${process.env.SMTP_FROM_NAME || 'Soft Chilli'}" <${process.env.SMTP_USER}>`,
@@ -110,12 +147,45 @@ const sendPasswordResetEmail = async (email, resetToken, resetUrl) => {
       `,
     };
 
+    console.log('Sending email...');
     const info = await transporter.sendMail(mailOptions);
-    console.log('Password reset email sent:', info.messageId);
+    console.log('Password reset email sent successfully:', {
+      messageId: info.messageId,
+      response: info.response,
+      accepted: info.accepted,
+      rejected: info.rejected,
+    });
     return info;
   } catch (error) {
-    console.error('Error sending password reset email:', error);
-    throw error;
+    console.error('Error sending password reset email - Full Details:', {
+      message: error.message,
+      code: error.code,
+      command: error.command,
+      response: error.response,
+      responseCode: error.responseCode,
+      stack: error.stack,
+      smtpConfig: {
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_SECURE,
+        user: process.env.SMTP_USER ? `${process.env.SMTP_USER.substring(0, 3)}***` : 'NOT SET',
+      },
+    });
+    
+    // Create a more descriptive error
+    let errorMessage = 'Failed to send email';
+    if (error.code === 'EAUTH') {
+      errorMessage = 'SMTP authentication failed. Please check SMTP_USER and SMTP_PASS.';
+    } else if (error.code === 'ECONNECTION' || error.code === 'ETIMEDOUT') {
+      errorMessage = 'SMTP connection failed. Please check SMTP_HOST and SMTP_PORT.';
+    } else if (error.message) {
+      errorMessage = `Email sending failed: ${error.message}`;
+    }
+    
+    const enhancedError = new Error(errorMessage);
+    enhancedError.originalError = error;
+    enhancedError.code = error.code;
+    throw enhancedError;
   }
 };
 

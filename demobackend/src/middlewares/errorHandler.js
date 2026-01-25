@@ -42,9 +42,14 @@ const logErrorToDatabase = async (err, req) => {
 
     // Don't log request body for security reasons (may contain passwords, tokens, etc.)
     // Only log body for non-sensitive endpoints
-    const sensitivePaths = ['/auth/login', '/auth/register', '/auth/change-password'];
+    const sensitivePaths = ['/auth/login', '/auth/register', '/auth/change-password', '/auth/reset-password'];
     if (!sensitivePaths.some(path => req.path.includes(path))) {
-      requestData.body = req.body;
+      // For forgot-password, only log email (not sensitive)
+      if (req.path.includes('/auth/forgot-password') && req.body?.email) {
+        requestData.body = { email: req.body.email };
+      } else if (!req.path.includes('/auth/forgot-password')) {
+        requestData.body = req.body;
+      }
     }
 
     requestData.headers = {
