@@ -13,6 +13,8 @@ import OrderDetailPage from './pages/OrderDetailPage';
 import InvoicePage from './pages/InvoicePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
 import AddressesPage from './pages/AddressesPage';
 import VendorsPage from './pages/VendorsPage';
@@ -72,6 +74,8 @@ function App() {
           <Route path="/addresses" element={<AddressesPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="*" element={<DefaultRedirect />} />
         </Routes>

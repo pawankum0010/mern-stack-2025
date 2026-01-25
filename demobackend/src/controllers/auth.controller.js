@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 
 const User = require('../models/user.model');
 const Role = require('../models/role.model');
@@ -6,6 +7,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendError } = require('../utils/response');
 const { generateToken } = require('../utils/token');
 const { logCustomActivity } = require('../middlewares/activityLogger');
+const { sendPasswordResetEmail } = require('../utils/email');
 
 const buildTokenPayload = (user) => ({
   sub: user.id,
@@ -221,6 +223,123 @@ exports.register = asyncHandler(async (req, res) => {
     },
     message: 'Registration successful',
     statusCode: 201,
+  });
+});
+
+// Request password reset
+exports.forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return sendError(res, {
+      message: 'Email is required',
+      statusCode: 400,
+    });
+  }
+
+  // Find user by email
+  const user = await User.findOne({ email: email.toLowerCase() });
+
+  // Check if email exists - show error if not found
+  if (!user) {
+    return sendError(res, {
+      message: 'No account found with this email address',
+      statusCode: 404,
+    });
+  }
+
+  // Generate reset token
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+  
+  // Set token and expiration (1 hour from now)
+  user.resetPasswordToken = resetTokenHash;
+  user.resetPasswordExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+  await user.save({ validateBeforeSave: false });
+
+  // Create reset URL
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(user.email)}`;
+
+  try {
+    // Send email
+    await sendPasswordResetEmail(user.email, resetToken, resetUrl);
+
+    sendSuccess(res, {
+      message: 'Password reset email sent successfully. Please check your email.',
+      data: null,
+    });
+  } catch (error) {
+    // If email fails, remove the token
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    console.error('Error sending password reset email:', error);
+    return sendError(res, {
+      message: 'Failed to send password reset email. Please try again later.',
+      statusCode: 500,
+    });
+  }
+});
+
+// Reset password with token
+exports.resetPassword = asyncHandler(async (req, res) => {
+  const { token, email, password } = req.body;
+
+  if (!token || !email || !password) {
+    return sendError(res, {
+      message: 'Token, email, and password are required',
+      statusCode: 400,
+    });
+  }
+
+  if (password.length < 6) {
+    return sendError(res, {
+      message: 'Password must be at least 6 characters',
+      statusCode: 400,
+    });
+  }
+
+  // Hash the token to compare with stored hash
+  const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+  // Find user with valid token and not expired
+  const user = await User.findOne({
+    email: email.toLowerCase(),
+    resetPasswordToken: resetTokenHash,
+    resetPasswordExpires: { $gt: Date.now() },
+  }).select('+password');
+
+  if (!user) {
+    return sendError(res, {
+      message: 'Invalid or expired password reset token',
+      statusCode: 400,
+    });
+  }
+
+  // Update password
+  user.password = password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  // Log password reset activity (only for customers)
+  const populatedUser = await user.populate('role', 'name');
+  const userRole = populatedUser.role?.name || populatedUser.role || '';
+  const isCustomer = userRole.toLowerCase() === 'customer';
+  
+  if (isCustomer && user._id) {
+    logCustomActivity(user._id, 'password_reset', {
+      ipAddress: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('user-agent'),
+      description: 'User reset password',
+    });
+  }
+
+  sendSuccess(res, {
+    message: 'Password reset successfully. You can now login with your new password.',
+    data: null,
   });
 });
 

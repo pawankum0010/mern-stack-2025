@@ -107,6 +107,9 @@ const LoginPage = () => {
               <div>
                 Don't have an account? <Link to="/signup">Sign up</Link>
               </div>
+              <div className="mt-2">
+                <Link to="/forgot-password">Forgot password?</Link>
+              </div>
             </Card.Footer>
           </Card>
         </Col>
