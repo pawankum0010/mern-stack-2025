@@ -6,6 +6,7 @@ const Product = require('../models/product.model');
 const OrderActivityLog = require('../models/orderActivityLog.model');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendError, sendNotFound } = require('../utils/response');
+const { sendOrderNotificationEmail } = require('../utils/email');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -124,7 +125,23 @@ exports.createOrder = asyncHandler(async (req, res) => {
   cart.items = [];
   await cart.save();
 
-  await order.populate('user', 'name email');
+  // Populate order with user and product details
+  await order.populate('user', 'name email phone address');
+  await order.populate('items.product', 'name images description');
+
+  // Get customer details
+  const customer = order.user;
+  
+  // Get product details for email
+  const products = order.items.map(item => item.product).filter(Boolean);
+
+  // Send order notification email to superadmin (non-blocking)
+  sendOrderNotificationEmail(order, customer, products).catch((error) => {
+    console.error('Failed to send order notification email (non-blocking):', {
+      orderNumber: order.orderNumber,
+      error: error.message,
+    });
+  });
 
   sendSuccess(res, {
     data: order,

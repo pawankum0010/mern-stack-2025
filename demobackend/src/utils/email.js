@@ -91,10 +91,15 @@ const sendPasswordResetEmail = async (email, resetToken, resetUrl) => {
               display: inline-block;
               padding: 12px 30px;
               background-color: #007bff;
-              color: white;
+              color: #ffffff !important;
               text-decoration: none;
               border-radius: 5px;
               margin: 20px 0;
+              font-weight: bold;
+            }
+            .button:hover {
+              background-color: #0056b3;
+              color: #ffffff !important;
             }
             .footer {
               text-align: center;
@@ -189,8 +194,313 @@ const sendPasswordResetEmail = async (email, resetToken, resetUrl) => {
   }
 };
 
+// Send order notification email to superadmin
+const sendOrderNotificationEmail = async (order, customer, products) => {
+  console.log('Attempting to send order notification email:', {
+    orderNumber: order.orderNumber,
+    customerEmail: customer?.email,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    const transporter = createTransporter();
+
+    // Find superadmin role and get superadmin users
+    const Role = require('../models/role.model');
+    const User = require('../models/user.model');
+    
+    const superadminRole = await Role.findOne({ name: 'superadmin' });
+    if (!superadminRole) {
+      console.warn('Superadmin role not found. Skipping order notification email.');
+      return null;
+    }
+
+    const superadmins = await User.find({ role: superadminRole._id }).select('email name');
+    if (!superadmins || superadmins.length === 0) {
+      console.warn('No superadmin users found. Skipping order notification email.');
+      return null;
+    }
+
+    // Build product details HTML
+    const productDetailsHtml = order.items.map((item, index) => {
+      const product = products.find(p => p._id.toString() === item.product.toString());
+      const productImage = product?.images?.[0] 
+        ? (product.images[0].startsWith('data:image/') 
+            ? product.images[0] 
+            : `data:image/jpeg;base64,${product.images[0]}`)
+        : null;
+      
+      return `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+            ${index + 1}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+            ${productImage ? `<img src="${productImage}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` : 'No Image'}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+            <strong>${item.name}</strong>
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">
+            ${item.quantity}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">
+            ₹${item.price.toFixed(2)}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">
+            <strong>₹${item.total.toFixed(2)}</strong>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Build customer details HTML
+    const customerDetailsHtml = `
+      <tr>
+        <td style="padding: 8px; font-weight: bold; width: 150px;">Name:</td>
+        <td style="padding: 8px;">${customer.name || 'N/A'}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Email:</td>
+        <td style="padding: 8px;">${customer.email || 'N/A'}</td>
+      </tr>
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Phone:</td>
+        <td style="padding: 8px;">${customer.phone || 'N/A'}</td>
+      </tr>
+      ${customer.address ? `
+      <tr>
+        <td style="padding: 8px; font-weight: bold;">Address:</td>
+        <td style="padding: 8px;">
+          ${customer.address.line1 || ''}${customer.address.line2 ? `, ${customer.address.line2}` : ''}<br>
+          ${customer.address.city || ''}${customer.address.state ? `, ${customer.address.state}` : ''}<br>
+          ${customer.address.postalCode || ''}${customer.address.country ? `, ${customer.address.country}` : ''}
+        </td>
+      </tr>
+      ` : ''}
+    `;
+
+    // Build shipping address HTML
+    const shippingAddressHtml = order.shippingAddress ? `
+      <tr>
+        <td style="padding: 8px; font-weight: bold; width: 150px;">Shipping Address:</td>
+        <td style="padding: 8px;">
+          ${order.shippingAddress.line1 || ''}${order.shippingAddress.line2 ? `, ${order.shippingAddress.line2}` : ''}<br>
+          ${order.shippingAddress.city || ''}${order.shippingAddress.state ? `, ${order.shippingAddress.state}` : ''}<br>
+          ${order.shippingAddress.postalCode || ''}${order.shippingAddress.country ? `, ${order.shippingAddress.country}` : ''}
+        </td>
+      </tr>
+    ` : '';
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+          }
+          .content {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+          }
+          th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: bold;
+          }
+          .order-summary {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+          }
+          .total-row {
+            font-weight: bold;
+            font-size: 1.1em;
+            background-color: #f8f9fa;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>New Order Placed</h2>
+          </div>
+          <div class="content">
+            <p>Hello,</p>
+            <p>A new order has been placed on your Soft Chilli platform.</p>
+            
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Order Information</h3>
+              <table>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold; width: 150px;">Order Number:</td>
+                  <td style="padding: 8px;"><strong>${order.orderNumber}</strong></td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Order Date:</td>
+                  <td style="padding: 8px;">${new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Payment Method:</td>
+                  <td style="padding: 8px;">${order.paymentMethod || 'Cash'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Status:</td>
+                  <td style="padding: 8px;"><strong style="color: #ffc107;">${order.status || 'Pending'}</strong></td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Customer Details</h3>
+              <table>
+                ${customerDetailsHtml}
+                ${shippingAddressHtml}
+              </table>
+            </div>
+
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Product Details</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="text-align: center; width: 50px;">#</th>
+                    <th style="text-align: center; width: 80px;">Image</th>
+                    <th>Product Name</th>
+                    <th style="text-align: center;">Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                    <th style="text-align: right;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${productDetailsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Order Summary</h3>
+              <table>
+                <tr>
+                  <td style="padding: 10px; text-align: right; font-weight: bold;">Subtotal:</td>
+                  <td style="padding: 10px; text-align: right;">₹${order.subtotal.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: right; font-weight: bold;">Tax:</td>
+                  <td style="padding: 10px; text-align: right;">₹${(order.tax || 0).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: right; font-weight: bold;">Shipping:</td>
+                  <td style="padding: 10px; text-align: right;">₹${(order.shipping || 0).toFixed(2)}</td>
+                </tr>
+                <tr class="total-row">
+                  <td style="padding: 10px; text-align: right;">Total Amount:</td>
+                  <td style="padding: 10px; text-align: right;">₹${order.total.toFixed(2)}</td>
+                </tr>
+              </table>
+            </div>
+
+            ${order.notes ? `
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Order Notes</h3>
+              <p>${order.notes}</p>
+            </div>
+            ` : ''}
+
+            <p style="margin-top: 20px;">Please review and process this order accordingly.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Send email to all superadmins
+    const emailPromises = superadmins.map(async (superadmin) => {
+      const mailOptions = {
+        from: `"${process.env.SMTP_FROM_NAME || 'Soft Chilli'}" <${process.env.SMTP_USER}>`,
+        to: superadmin.email,
+        subject: `New Order Placed - ${order.orderNumber}`,
+        html: htmlContent,
+        text: `
+          New Order Placed - ${order.orderNumber}
+          
+          A new order has been placed on your Soft Chilli platform.
+          
+          Order Number: ${order.orderNumber}
+          Order Date: ${new Date(order.createdAt).toLocaleString('en-IN')}
+          Customer: ${customer.name} (${customer.email})
+          Total Amount: ₹${order.total.toFixed(2)}
+          
+          Please log in to your admin panel to view full order details.
+        `,
+      };
+
+      return transporter.sendMail(mailOptions);
+    });
+
+    const results = await Promise.allSettled(emailPromises);
+    
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    console.log('Order notification emails sent:', {
+      total: superadmins.length,
+      successful,
+      failed,
+      orderNumber: order.orderNumber,
+    });
+
+    if (failed > 0) {
+      console.warn('Some order notification emails failed to send:', {
+        failedCount: failed,
+        errors: results
+          .filter(r => r.status === 'rejected')
+          .map(r => r.reason?.message || 'Unknown error'),
+      });
+    }
+
+    return results;
+  } catch (error) {
+    console.error('Error sending order notification email:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      orderNumber: order.orderNumber,
+    });
+    // Don't throw error - order creation should not fail if email fails
+    return null;
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
+  sendOrderNotificationEmail,
   createTransporter,
 };
 
