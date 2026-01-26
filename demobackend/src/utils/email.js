@@ -923,10 +923,271 @@ const sendOrderConfirmationEmail = async (order, customer, products) => {
   }
 };
 
+// Send welcome email to new customer after signup
+const sendWelcomeEmail = async (customer) => {
+  console.log('=== Welcome Email - Starting ===');
+  console.log('Attempting to send welcome email to new customer:', {
+    customerEmail: customer?.email,
+    customerName: customer?.name,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    // Validate input data
+    if (!customer || !customer.email) {
+      console.error('❌ Invalid customer data. Cannot send welcome email.');
+      return null;
+    }
+
+    // Verify SMTP configuration
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('❌ SMTP configuration missing. Cannot send welcome email.');
+      return null;
+    }
+
+    console.log('✅ Input validation passed. Creating transporter...');
+    const transporter = createTransporter();
+
+    // Get featured products
+    const Product = require('../models/product.model');
+    const featuredProducts = await Product.find({ 
+      featured: true, 
+      status: 'active' 
+    })
+    .limit(6)
+    .select('name images price compareAtPrice description')
+    .lean();
+
+    console.log(`Found ${featuredProducts.length} featured products for welcome email`);
+
+    // Build featured products HTML
+    const featuredProductsHtml = featuredProducts.length > 0 ? `
+      <div class="order-summary" style="margin-top: 30px;">
+        <h3 style="margin-top: 0; text-align: center; color: #28a745;">Featured Products</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+          ${featuredProducts.map((product) => {
+            const productImage = product.images?.[0] 
+              ? (product.images[0].startsWith('data:image/') 
+                  ? product.images[0] 
+                  : `data:image/jpeg;base64,${product.images[0]}`)
+              : null;
+            const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+            const productUrl = `${frontendUrl}/products/${product._id}`;
+            
+            return `
+              <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; background: white;">
+                ${productImage ? `
+                  <a href="${productUrl}" style="text-decoration: none; color: inherit;">
+                    <img src="${productImage}" alt="${product.name}" style="width: 100%; max-width: 150px; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                  </a>
+                ` : ''}
+                <h4 style="margin: 10px 0; font-size: 16px;">
+                  <a href="${productUrl}" style="text-decoration: none; color: #007bff;">${product.name}</a>
+                </h4>
+                <div style="margin: 10px 0;">
+                  <strong style="color: #28a745; font-size: 18px;">₹${product.price.toFixed(2)}</strong>
+                  ${product.compareAtPrice && product.compareAtPrice > product.price ? `
+                    <span style="text-decoration: line-through; color: #999; margin-left: 10px;">₹${product.compareAtPrice.toFixed(2)}</span>
+                  ` : ''}
+                </div>
+                <a href="${productUrl}" class="button" style="display: inline-block; padding: 8px 20px; background-color: #007bff; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; font-size: 14px;">View Product</a>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const shopUrl = `${frontendUrl}/`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+          }
+          .content {
+            background-color: #f9f9f9;
+            padding: 40px 30px;
+            border-radius: 0 0 10px 10px;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+          }
+          .button:hover {
+            background-color: #0056b3;
+            color: #ffffff !important;
+          }
+          .welcome-message {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+          }
+          .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+          }
+          .feature-box {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+          }
+          .feature-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin: 0; font-size: 32px;">🎉 Welcome to Soft Chilli!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px;">We're thrilled to have you with us!</p>
+          </div>
+          <div class="content">
+            <div class="welcome-message">
+              <h2 style="color: #28a745; margin-top: 0;">Hello ${customer.name || 'Valued Customer'}!</h2>
+              <p style="font-size: 16px; line-height: 1.8;">
+                Thank you for joining Soft Chilli! We're excited to have you as part of our community.
+              </p>
+              <p style="font-size: 16px; line-height: 1.8;">
+                You've successfully created your account and we're ready to help you discover amazing products at great prices.
+              </p>
+              <p style="font-size: 16px; line-height: 1.8; color: #28a745; font-weight: bold;">
+                Happy Shopping! 🛍️
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${shopUrl}" class="button">Start Shopping Now</a>
+            </div>
+
+            <div class="features">
+              <div class="feature-box">
+                <div class="feature-icon">🚚</div>
+                <h3 style="margin: 10px 0;">Fast Delivery</h3>
+                <p>Quick and reliable shipping to your doorstep</p>
+              </div>
+              <div class="feature-box">
+                <div class="feature-icon">💳</div>
+                <h3 style="margin: 10px 0;">Secure Payment</h3>
+                <p>Safe and secure payment options</p>
+              </div>
+              <div class="feature-box">
+                <div class="feature-icon">🎁</div>
+                <h3 style="margin: 10px 0;">Best Prices</h3>
+                <p>Competitive prices on all products</p>
+              </div>
+              <div class="feature-box">
+                <div class="feature-icon">⭐</div>
+                <h3 style="margin: 10px 0;">Quality Products</h3>
+                <p>Only the best quality products</p>
+              </div>
+            </div>
+
+            ${featuredProductsHtml}
+
+            <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+              <p style="color: #666; margin: 10px 0;">
+                Need help? Contact our support team anytime!
+              </p>
+              <p style="color: #666; margin: 10px 0; font-size: 14px;">
+                &copy; ${new Date().getFullYear()} Soft Chilli. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    console.log(`Preparing welcome email for customer: ${customer.email}`);
+    const mailOptions = {
+      from: `"${process.env.SMTP_FROM_NAME || 'Soft Chilli'}" <${process.env.SMTP_USER}>`,
+      to: customer.email,
+      subject: 'Welcome to Soft Chilli! 🎉',
+      html: htmlContent,
+      text: `
+        Welcome to Soft Chilli!
+        
+        Hello ${customer.name || 'Valued Customer'}!
+        
+        Thank you for joining Soft Chilli! We're excited to have you as part of our community.
+        
+        You've successfully created your account and we're ready to help you discover amazing products at great prices.
+        
+        Happy Shopping!
+        
+        Start shopping now: ${shopUrl}
+        
+        Need help? Contact our support team anytime!
+        
+        © ${new Date().getFullYear()} Soft Chilli. All rights reserved.
+      `,
+    };
+
+    console.log(`Sending welcome email to ${customer.email}...`);
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Welcome email sent successfully to ${customer.email}:`, {
+      messageId: result.messageId,
+      response: result.response,
+    });
+    console.log('=== Welcome Email - Completed ===');
+    return result;
+  } catch (error) {
+    console.error('❌ Error sending welcome email:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      customerEmail: customer?.email,
+      errorDetails: {
+        name: error.name,
+        response: error.response,
+        command: error.command,
+        responseCode: error.responseCode,
+      },
+    });
+    // Don't throw error - signup should not fail if email fails
+    return null;
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendOrderNotificationEmail,
   sendOrderConfirmationEmail,
+  sendWelcomeEmail,
   createTransporter,
 };
 

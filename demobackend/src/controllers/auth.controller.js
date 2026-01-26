@@ -216,6 +216,25 @@ exports.register = asyncHandler(async (req, res) => {
   const populated = await user.populate('role', 'name');
   const token = generateToken(buildTokenPayload(populated));
 
+  // Send welcome email to customer (non-blocking)
+  const { sendWelcomeEmail } = require('../utils/email');
+  console.log('Triggering welcome email to new customer...');
+  sendWelcomeEmail(populated)
+    .then((result) => {
+      if (result) {
+        console.log('Welcome email to customer completed.');
+      } else {
+        console.warn('Welcome email to customer returned null - check logs above for details.');
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Failed to send welcome email to customer (non-blocking):', {
+        customerEmail: populated.email,
+        error: error.message,
+        stack: error.stack,
+      });
+    });
+
   sendSuccess(res, {
     data: {
       token,
