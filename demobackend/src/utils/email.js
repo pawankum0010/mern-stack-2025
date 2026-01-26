@@ -248,7 +248,12 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
     }
     if (!superadminRole) {
       console.error('❌ Superadmin role not found. Skipping order notification email.');
-      console.error('Available roles in database:', await Role.find({}).select('name'));
+      try {
+        const allRoles = await Role.find({}).select('name').lean();
+        console.error('Available roles in database:', allRoles.map(r => r.name));
+      } catch (roleError) {
+        console.error('Could not fetch roles:', roleError.message);
+      }
       return null;
     }
     console.log('✅ Superadmin role found:', {
@@ -263,20 +268,29 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
     // If no users found, try alternative query
     if (!superadmins || superadmins.length === 0) {
       console.log('Trying alternative query to find superadmin users...');
-      // Try finding users and then filtering by populated role
-      const allUsers = await User.find({}).select('email name role').populate('role', 'name');
-      superadmins = allUsers.filter(user => {
-        const roleName = typeof user.role === 'object' && user.role?.name 
-          ? user.role.name.toLowerCase() 
-          : '';
-        return roleName === 'superadmin';
-      });
+      try {
+        // Try finding users and then filtering by populated role
+        const allUsers = await User.find({}).select('email name role').populate('role', 'name');
+        superadmins = allUsers.filter(user => {
+          const roleName = typeof user.role === 'object' && user.role?.name 
+            ? user.role.name.toLowerCase() 
+            : '';
+          return roleName === 'superadmin';
+        });
+      } catch (queryError) {
+        console.error('Error in alternative query:', queryError.message);
+      }
     }
     
     if (!superadmins || superadmins.length === 0) {
       console.error('❌ No superadmin users found. Skipping order notification email.');
       console.error('To fix: Create a user with superadmin role in the database.');
-      console.error('Total users in database:', await User.countDocuments({}));
+      try {
+        const totalUsers = await User.countDocuments({});
+        console.error('Total users in database:', totalUsers);
+      } catch (countError) {
+        console.error('Could not count users:', countError.message);
+      }
       return null;
     }
     
@@ -541,8 +555,6 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
 
       console.log(`Sending email to ${superadmin.email}...`);
       try {
-        // Verify SMTP connection before sending
-        await transporter.verify();
         const result = await transporter.sendMail(mailOptions);
         console.log(`✅ Email sent successfully to ${superadmin.email}:`, {
           messageId: result.messageId,
