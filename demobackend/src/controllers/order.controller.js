@@ -136,12 +136,22 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const products = order.items.map(item => item.product).filter(Boolean);
 
   // Send order notification email to superadmin (non-blocking)
-  sendOrderNotificationEmail(order, customer, products).catch((error) => {
-    console.error('Failed to send order notification email (non-blocking):', {
-      orderNumber: order.orderNumber,
-      error: error.message,
+  console.log('Triggering order notification email...');
+  sendOrderNotificationEmail(order, customer, products)
+    .then((results) => {
+      if (results) {
+        console.log('Order notification email process completed.');
+      } else {
+        console.warn('Order notification email returned null - check logs above for details.');
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Failed to send order notification email (non-blocking):', {
+        orderNumber: order.orderNumber,
+        error: error.message,
+        stack: error.stack,
+      });
     });
-  });
 
   sendSuccess(res, {
     data: order,

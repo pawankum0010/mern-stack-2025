@@ -196,30 +196,65 @@ const sendPasswordResetEmail = async (email, resetToken, resetUrl) => {
 
 // Send order notification email to superadmin
 const sendOrderNotificationEmail = async (order, customer, products) => {
+  console.log('=== Order Notification Email - Starting ===');
   console.log('Attempting to send order notification email:', {
     orderNumber: order.orderNumber,
     customerEmail: customer?.email,
+    customerName: customer?.name,
+    orderId: order._id?.toString(),
     timestamp: new Date().toISOString(),
   });
 
   try {
+    // Validate input data
+    if (!order || !order.orderNumber) {
+      console.error('❌ Invalid order data. Cannot send order notification email.');
+      return null;
+    }
+
+    if (!customer || !customer.email) {
+      console.error('❌ Invalid customer data. Cannot send order notification email.');
+      return null;
+    }
+
+    if (!products || products.length === 0) {
+      console.warn('⚠️ No products found in order. Email will be sent without product details.');
+    }
+
+    // Verify SMTP configuration first
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('❌ SMTP configuration missing. Cannot send order notification email.');
+      console.error('Required environment variables: SMTP_USER, SMTP_PASS');
+      return null;
+    }
+
+    console.log('✅ Input validation passed.');
+
+    console.log('SMTP configuration verified. Creating transporter...');
     const transporter = createTransporter();
 
     // Find superadmin role and get superadmin users
     const Role = require('../models/role.model');
     const User = require('../models/user.model');
     
+    console.log('Looking for superadmin role...');
     const superadminRole = await Role.findOne({ name: 'superadmin' });
     if (!superadminRole) {
-      console.warn('Superadmin role not found. Skipping order notification email.');
+      console.error('❌ Superadmin role not found. Skipping order notification email.');
       return null;
     }
+    console.log('✅ Superadmin role found:', superadminRole._id.toString());
 
+    console.log('Looking for superadmin users...');
     const superadmins = await User.find({ role: superadminRole._id }).select('email name');
     if (!superadmins || superadmins.length === 0) {
-      console.warn('No superadmin users found. Skipping order notification email.');
+      console.error('❌ No superadmin users found. Skipping order notification email.');
+      console.log('To fix: Create a user with superadmin role in the database.');
       return null;
     }
+    console.log(`✅ Found ${superadmins.length} superadmin user(s):`, 
+      superadmins.map(s => ({ email: s.email, name: s.name }))
+    );
 
     // Build product details HTML
     const productDetailsHtml = order.items.map((item, index) => {
@@ -441,7 +476,14 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
     `;
 
     // Send email to all superadmins
+    console.log('Preparing email content...');
     const emailPromises = superadmins.map(async (superadmin) => {
+      if (!superadmin.email) {
+        console.warn(`⚠️ Superadmin ${superadmin.name || superadmin._id} has no email address. Skipping.`);
+        return null;
+      }
+
+      console.log(`Preparing email for superadmin: ${superadmin.email}`);
       const mailOptions = {
         from: `"${process.env.SMTP_FROM_NAME || 'Soft Chilli'}" <${process.env.SMTP_USER}>`,
         to: superadmin.email,
@@ -461,14 +503,31 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
         `,
       };
 
-      return transporter.sendMail(mailOptions);
+      console.log(`Sending email to ${superadmin.email}...`);
+      try {
+        const result = await transporter.sendMail(mailOptions);
+        console.log(`✅ Email sent successfully to ${superadmin.email}:`, {
+          messageId: result.messageId,
+          response: result.response,
+        });
+        return result;
+      } catch (emailError) {
+        console.error(`❌ Failed to send email to ${superadmin.email}:`, {
+          message: emailError.message,
+          code: emailError.code,
+          response: emailError.response,
+        });
+        throw emailError; // Re-throw to be caught by Promise.allSettled
+      }
     });
 
-    const results = await Promise.allSettled(emailPromises);
+    console.log('Sending emails to all superadmins...');
+    const results = await Promise.allSettled(emailPromises.filter(p => p !== null));
     
     const successful = results.filter(r => r.status === 'fulfilled').length;
     const failed = results.filter(r => r.status === 'rejected').length;
 
+    console.log('=== Order Notification Email - Summary ===');
     console.log('Order notification emails sent:', {
       total: superadmins.length,
       successful,
@@ -477,24 +536,41 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
     });
 
     if (failed > 0) {
-      console.warn('Some order notification emails failed to send:', {
+      console.error('❌ Some order notification emails failed to send:', {
         failedCount: failed,
         errors: results
           .filter(r => r.status === 'rejected')
-          .map(r => r.reason?.message || 'Unknown error'),
+          .map((r, index) => ({
+            superadmin: superadmins[index]?.email || 'Unknown',
+            error: r.reason?.message || 'Unknown error',
+            code: r.reason?.code,
+            response: r.reason?.response,
+          })),
       });
+    }
+
+    if (successful > 0) {
+      console.log('✅ Order notification emails sent successfully!');
     }
 
     return results;
   } catch (error) {
-    console.error('Error sending order notification email:', {
+    console.error('❌ Error sending order notification email:', {
       message: error.message,
       code: error.code,
       stack: error.stack,
       orderNumber: order.orderNumber,
+      errorDetails: {
+        name: error.name,
+        response: error.response,
+        command: error.command,
+        responseCode: error.responseCode,
+      },
     });
     // Don't throw error - order creation should not fail if email fails
     return null;
+  } finally {
+    console.log('=== Order Notification Email - Completed ===');
   }
 };
 

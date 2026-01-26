@@ -1,6 +1,7 @@
 # mern-stack-2025
 
-https://mern-stack-2025-liard.vercel.app/
+**Production URL**: https://erp.softchilli.com  
+**Vercel URL**: https://mern-stack-2025-liard.vercel.app/
 
 # Install Dependencies for demobackend
 1. npm i express mongoose
@@ -29,7 +30,8 @@ JWT_EXPIRES_IN=1h
 ### Environment Variables (`frontend/.env`)
 ```
 #REACT_APP_API_BASE_URL=http://localhost:5000/api
-#REACT_APP_API_BASE_URL=https://mern-stack-2025-lqd8.vercel.app/api
+# For production, frontend uses relative URLs (/api) - no need to set this
+# Only set if you need to override the default behavior
 ```
 
 ### Available REST Endpoints
