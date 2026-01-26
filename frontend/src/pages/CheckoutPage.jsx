@@ -57,7 +57,7 @@ const CheckoutPage = () => {
     notes: '',
   });
 
-  const populateShippingAddress = useCallback(async (address) => {
+  const populateShippingAddress = useCallback((address) => {
     setFormData((prev) => ({
       ...prev,
       shippingAddress: {
@@ -69,20 +69,7 @@ const CheckoutPage = () => {
         country: address.country || '',
       },
     }));
-
-    // Calculate shipping for this address
-    const postalCode = address.postalCode;
-    if (postalCode && postalCode.length === 6) {
-      try {
-        const { data } = await api.get(`/pincodes/code/${postalCode}`);
-        const charge = data?.data?.shippingCharge || 0;
-        setFormData((prev) => ({ ...prev, shipping: charge }));
-      } catch (error) {
-        setFormData((prev) => ({ ...prev, shipping: 0 }));
-      }
-    } else {
-      setFormData((prev) => ({ ...prev, shipping: 0 }));
-    }
+    // Note: Shipping charge calculation is handled by useEffect when postalCode changes
   }, []);
 
   const populateBillingAddress = useCallback((address) => {

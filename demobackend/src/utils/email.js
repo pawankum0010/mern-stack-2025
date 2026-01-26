@@ -574,9 +574,304 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
   }
 };
 
+// Send order confirmation email to customer
+const sendOrderConfirmationEmail = async (order, customer, products) => {
+  console.log('=== Order Confirmation Email (Customer) - Starting ===');
+  console.log('Attempting to send order confirmation email to customer:', {
+    orderNumber: order.orderNumber,
+    customerEmail: customer?.email,
+    customerName: customer?.name,
+    orderId: order._id?.toString(),
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    // Validate input data
+    if (!order || !order.orderNumber) {
+      console.error('❌ Invalid order data. Cannot send order confirmation email.');
+      return null;
+    }
+
+    if (!customer || !customer.email) {
+      console.error('❌ Invalid customer data. Cannot send order confirmation email.');
+      return null;
+    }
+
+    // Verify SMTP configuration
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('❌ SMTP configuration missing. Cannot send order confirmation email.');
+      return null;
+    }
+
+    console.log('✅ Input validation passed. Creating transporter...');
+    const transporter = createTransporter();
+
+    // Build product details HTML
+    const productDetailsHtml = order.items.map((item, index) => {
+      const product = products.find(p => p._id.toString() === item.product.toString());
+      const productImage = product?.images?.[0] 
+        ? (product.images[0].startsWith('data:image/') 
+            ? product.images[0] 
+            : `data:image/jpeg;base64,${product.images[0]}`)
+        : null;
+      
+      return `
+        <tr>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+            ${index + 1}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+            ${productImage ? `<img src="${productImage}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">` : 'No Image'}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd;">
+            <strong>${item.name}</strong>
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">
+            ${item.quantity}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">
+            ₹${item.price.toFixed(2)}
+          </td>
+          <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">
+            <strong>₹${item.total.toFixed(2)}</strong>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    // Build shipping address HTML
+    const shippingAddressHtml = order.shippingAddress ? `
+      <tr>
+        <td style="padding: 8px; font-weight: bold; width: 150px;">Shipping Address:</td>
+        <td style="padding: 8px;">
+          ${order.shippingAddress.line1 || ''}${order.shippingAddress.line2 ? `, ${order.shippingAddress.line2}` : ''}<br>
+          ${order.shippingAddress.city || ''}${order.shippingAddress.state ? `, ${order.shippingAddress.state}` : ''}<br>
+          ${order.shippingAddress.postalCode || ''}${order.shippingAddress.country ? `, ${order.shippingAddress.country}` : ''}
+        </td>
+      </tr>
+    ` : '';
+
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
+    const orderUrl = `${frontendUrl}/orders/${order._id}`;
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+          }
+          .content {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+          }
+          th {
+            background-color: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: bold;
+          }
+          .order-summary {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+          }
+          .total-row {
+            font-weight: bold;
+            font-size: 1.1em;
+            background-color: #f8f9fa;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>Order Confirmation</h2>
+          </div>
+          <div class="content">
+            <p>Hello ${customer.name || 'Customer'},</p>
+            <p>Thank you for your order! We have received your order and it is being processed.</p>
+            
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Order Information</h3>
+              <table>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold; width: 150px;">Order Number:</td>
+                  <td style="padding: 8px;"><strong>${order.orderNumber}</strong></td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Order Date:</td>
+                  <td style="padding: 8px;">${new Date(order.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Payment Method:</td>
+                  <td style="padding: 8px;">${order.paymentMethod || 'Cash'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px; font-weight: bold;">Status:</td>
+                  <td style="padding: 8px;"><strong style="color: #ffc107;">${order.status || 'Pending'}</strong></td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Shipping Address</h3>
+              <table>
+                ${shippingAddressHtml}
+              </table>
+            </div>
+
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Product Details</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="text-align: center; width: 50px;">#</th>
+                    <th style="text-align: center; width: 80px;">Image</th>
+                    <th>Product Name</th>
+                    <th style="text-align: center;">Quantity</th>
+                    <th style="text-align: right;">Unit Price</th>
+                    <th style="text-align: right;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${productDetailsHtml}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Order Summary</h3>
+              <table>
+                <tr>
+                  <td style="padding: 10px; text-align: right; font-weight: bold;">Subtotal:</td>
+                  <td style="padding: 10px; text-align: right;">₹${order.subtotal.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: right; font-weight: bold;">Tax:</td>
+                  <td style="padding: 10px; text-align: right;">₹${(order.tax || 0).toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px; text-align: right; font-weight: bold;">Shipping:</td>
+                  <td style="padding: 10px; text-align: right;">₹${(order.shipping || 0).toFixed(2)}</td>
+                </tr>
+                <tr class="total-row">
+                  <td style="padding: 10px; text-align: right;">Total Amount:</td>
+                  <td style="padding: 10px; text-align: right;">₹${order.total.toFixed(2)}</td>
+                </tr>
+              </table>
+            </div>
+
+            ${order.notes ? `
+            <div class="order-summary">
+              <h3 style="margin-top: 0;">Order Notes</h3>
+              <p>${order.notes}</p>
+            </div>
+            ` : ''}
+
+            <div style="text-align: center; margin-top: 20px;">
+              <a href="${orderUrl}" class="button">View Order Details</a>
+            </div>
+
+            <p style="margin-top: 20px;">We will send you another email once your order has been shipped.</p>
+            <p>If you have any questions, please contact our support team.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    console.log(`Preparing email for customer: ${customer.email}`);
+    const mailOptions = {
+      from: `"${process.env.SMTP_FROM_NAME || 'Soft Chilli'}" <${process.env.SMTP_USER}>`,
+      to: customer.email,
+      subject: `Order Confirmation - ${order.orderNumber}`,
+      html: htmlContent,
+      text: `
+        Order Confirmation - ${order.orderNumber}
+        
+        Hello ${customer.name || 'Customer'},
+        
+        Thank you for your order! We have received your order and it is being processed.
+        
+        Order Number: ${order.orderNumber}
+        Order Date: ${new Date(order.createdAt).toLocaleString('en-IN')}
+        Total Amount: ₹${order.total.toFixed(2)}
+        
+        View your order: ${orderUrl}
+        
+        We will send you another email once your order has been shipped.
+        
+        If you have any questions, please contact our support team.
+      `,
+    };
+
+    console.log(`Sending email to ${customer.email}...`);
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`✅ Order confirmation email sent successfully to ${customer.email}:`, {
+      messageId: result.messageId,
+      response: result.response,
+    });
+    console.log('=== Order Confirmation Email (Customer) - Completed ===');
+    return result;
+  } catch (error) {
+    console.error('❌ Error sending order confirmation email to customer:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      orderNumber: order.orderNumber,
+      customerEmail: customer?.email,
+      errorDetails: {
+        name: error.name,
+        response: error.response,
+        command: error.command,
+        responseCode: error.responseCode,
+      },
+    });
+    // Don't throw error - order creation should not fail if email fails
+    return null;
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendOrderNotificationEmail,
+  sendOrderConfirmationEmail,
   createTransporter,
 };
 

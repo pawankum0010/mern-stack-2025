@@ -6,7 +6,7 @@ const Product = require('../models/product.model');
 const OrderActivityLog = require('../models/orderActivityLog.model');
 const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess, sendError, sendNotFound } = require('../utils/response');
-const { sendOrderNotificationEmail } = require('../utils/email');
+const { sendOrderNotificationEmail, sendOrderConfirmationEmail } = require('../utils/email');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -136,17 +136,35 @@ exports.createOrder = asyncHandler(async (req, res) => {
   const products = order.items.map(item => item.product).filter(Boolean);
 
   // Send order notification email to superadmin (non-blocking)
-  console.log('Triggering order notification email...');
+  console.log('Triggering order notification email to superadmin...');
   sendOrderNotificationEmail(order, customer, products)
     .then((results) => {
       if (results) {
-        console.log('Order notification email process completed.');
+        console.log('Order notification email to superadmin completed.');
       } else {
-        console.warn('Order notification email returned null - check logs above for details.');
+        console.warn('Order notification email to superadmin returned null - check logs above for details.');
       }
     })
     .catch((error) => {
-      console.error('❌ Failed to send order notification email (non-blocking):', {
+      console.error('❌ Failed to send order notification email to superadmin (non-blocking):', {
+        orderNumber: order.orderNumber,
+        error: error.message,
+        stack: error.stack,
+      });
+    });
+
+  // Send order confirmation email to customer (non-blocking)
+  console.log('Triggering order confirmation email to customer...');
+  sendOrderConfirmationEmail(order, customer, products)
+    .then((result) => {
+      if (result) {
+        console.log('Order confirmation email to customer completed.');
+      } else {
+        console.warn('Order confirmation email to customer returned null - check logs above for details.');
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Failed to send order confirmation email to customer (non-blocking):', {
         orderNumber: order.orderNumber,
         error: error.message,
         stack: error.stack,
