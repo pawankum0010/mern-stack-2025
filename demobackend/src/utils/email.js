@@ -238,22 +238,58 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
     const User = require('../models/user.model');
     
     console.log('Looking for superadmin role...');
-    const superadminRole = await Role.findOne({ name: 'superadmin' });
+    // Try case-insensitive search for superadmin role
+    let superadminRole = await Role.findOne({ name: 'superadmin' });
+    if (!superadminRole) {
+      // Try case-insensitive search
+      superadminRole = await Role.findOne({ 
+        name: { $regex: /^superadmin$/i } 
+      });
+    }
     if (!superadminRole) {
       console.error('❌ Superadmin role not found. Skipping order notification email.');
+      console.error('Available roles in database:', await Role.find({}).select('name'));
       return null;
     }
-    console.log('✅ Superadmin role found:', superadminRole._id.toString());
+    console.log('✅ Superadmin role found:', {
+      id: superadminRole._id.toString(),
+      name: superadminRole.name,
+    });
 
     console.log('Looking for superadmin users...');
-    const superadmins = await User.find({ role: superadminRole._id }).select('email name');
+    // Find users with superadmin role (try both ObjectId and string matching)
+    let superadmins = await User.find({ role: superadminRole._id }).select('email name role');
+    
+    // If no users found, try alternative query
+    if (!superadmins || superadmins.length === 0) {
+      console.log('Trying alternative query to find superadmin users...');
+      // Try finding users and then filtering by populated role
+      const allUsers = await User.find({}).select('email name role').populate('role', 'name');
+      superadmins = allUsers.filter(user => {
+        const roleName = typeof user.role === 'object' && user.role?.name 
+          ? user.role.name.toLowerCase() 
+          : '';
+        return roleName === 'superadmin';
+      });
+    }
+    
     if (!superadmins || superadmins.length === 0) {
       console.error('❌ No superadmin users found. Skipping order notification email.');
-      console.log('To fix: Create a user with superadmin role in the database.');
+      console.error('To fix: Create a user with superadmin role in the database.');
+      console.error('Total users in database:', await User.countDocuments({}));
       return null;
     }
-    console.log(`✅ Found ${superadmins.length} superadmin user(s):`, 
-      superadmins.map(s => ({ email: s.email, name: s.name }))
+    
+    // Filter out users without email
+    superadmins = superadmins.filter(s => s.email);
+    
+    if (superadmins.length === 0) {
+      console.error('❌ No superadmin users with email addresses found.');
+      return null;
+    }
+    
+    console.log(`✅ Found ${superadmins.length} superadmin user(s) with email:`, 
+      superadmins.map(s => ({ email: s.email, name: s.name, id: s._id.toString() }))
     );
 
     // Build product details HTML
@@ -505,10 +541,14 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
 
       console.log(`Sending email to ${superadmin.email}...`);
       try {
+        // Verify SMTP connection before sending
+        await transporter.verify();
         const result = await transporter.sendMail(mailOptions);
         console.log(`✅ Email sent successfully to ${superadmin.email}:`, {
           messageId: result.messageId,
           response: result.response,
+          accepted: result.accepted,
+          rejected: result.rejected,
         });
         return result;
       } catch (emailError) {
@@ -516,6 +556,9 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
           message: emailError.message,
           code: emailError.code,
           response: emailError.response,
+          command: emailError.command,
+          responseCode: emailError.responseCode,
+          stack: emailError.stack,
         });
         throw emailError; // Re-throw to be caught by Promise.allSettled
       }
