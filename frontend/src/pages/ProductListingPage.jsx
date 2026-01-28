@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Badge, Button, Card, Col, Container, Form, Row, Spinner, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FiChevronDown, FiChevronUp, FiStar } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import api from '../api/client';
+import './ProductListingPage.css';
 
 const ProductListingPage = () => {
   const { isAuthenticated } = useAuth();
   const cartContext = useCart();
   const { refreshCart } = cartContext;
   const navigate = useNavigate();
+  const location = useLocation();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [addingToCart, setAddingToCart] = useState(null);
   const [cartMessage, setCartMessage] = useState(null);
@@ -24,12 +28,46 @@ const ProductListingPage = () => {
     status: 'active',
     featured: '',
   });
+  const [sortBy, setSortBy] = useState('relevance');
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 12,
     total: 0,
     pages: 0,
   });
+  const [expandedFilters, setExpandedFilters] = useState({
+    price: true,
+    category: true,
+    featured: true,
+  });
+
+  // Sync search from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setFilters((prev) => ({ ...prev, search: searchParam }));
+    }
+  }, [location.search]);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get('/categories', { params: { status: 'active' } });
+        setCategories(data?.data || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Initial fetch on mount
+  useEffect(() => {
+    fetchProducts(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchProducts = async (page = 1) => {
     setLoading(true);
@@ -57,6 +95,18 @@ const ProductListingPage = () => {
         params.featured = filters.featured;
       }
 
+      // Add sorting
+      if (sortBy === 'price-low') {
+        params.sortBy = 'price';
+        params.sortOrder = 'asc';
+      } else if (sortBy === 'price-high') {
+        params.sortBy = 'price';
+        params.sortOrder = 'desc';
+      } else if (sortBy === 'name') {
+        params.sortBy = 'name';
+        params.sortOrder = 'asc';
+      }
+
       const { data } = await api.get('/products', { params });
       setProducts(data?.data || []);
       setPagination(data?.pagination || pagination);
@@ -80,7 +130,7 @@ const ProductListingPage = () => {
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
+  }, [filters, sortBy]);
 
   const handleFilterChange = (name, value) => {
     setFilters((prev) => ({ ...prev, [name]: value }));
@@ -145,265 +195,387 @@ const ProductListingPage = () => {
     }
   };
 
+  const toggleFilterSection = (section) => {
+    setExpandedFilters((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      search: '',
+      category: '',
+      minPrice: '',
+      maxPrice: '',
+      status: 'active',
+      featured: '',
+    });
+  };
+
+  const getImageUrl = (image) => {
+    if (!image) return '';
+    if (image.startsWith('data:image/')) return image;
+    if (image.startsWith('http')) return image;
+    return `${api.defaults.baseURL.replace('/api', '')}${image}`;
+  };
+
+  const calculateDiscount = (price, comparePrice) => {
+    if (!comparePrice || comparePrice <= price) return 0;
+    return Math.round(((comparePrice - price) / comparePrice) * 100);
+  };
+
   return (
     <>
       <AppNavbar />
-      <Container fluid className="py-4">
-        <Row className="g-4">
-          {/* Filters Sidebar */}
-          <Col xs={12} md={3}>
-            <Card className="shadow-sm sticky-top" style={{ top: '20px' }}>
-              <Card.Header>
-                <Card.Title className="mb-0">Filters</Card.Title>
-              </Card.Header>
-              <Card.Body>
-                <Form>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Search</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Search products..."
-                      value={filters.search}
-                      onChange={(e) => handleFilterChange('search', e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Category</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="Category"
-                      value={filters.category}
-                      onChange={(e) => handleFilterChange('category', e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Min Price</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      value={filters.minPrice}
-                      onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Max Price</Form.Label>
-                    <Form.Control
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      value={filters.maxPrice}
-                      onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                    />
-                  </Form.Group>
-                  <Form.Group className="mb-3">
-                    <Form.Label>Featured</Form.Label>
-                    <Form.Select
-                      value={filters.featured}
-                      onChange={(e) => handleFilterChange('featured', e.target.value)}
-                    >
-                      <option value="">All</option>
-                      <option value="true">Featured Only</option>
-                    </Form.Select>
-                  </Form.Group>
+      <div className="product-listing-page">
+        <Container fluid className="main-content">
+          <Row>
+            {/* Filters Sidebar */}
+            <Col xs={12} md={3} className="filters-sidebar">
+              <div className="filters-card">
+                <div className="filters-header">
+                  <h5>Filters</h5>
                   <Button
-                    variant="outline-secondary"
+                    variant="link"
                     size="sm"
-                    onClick={() => {
-                      setFilters({
-                        search: '',
-                        category: '',
-                        minPrice: '',
-                        maxPrice: '',
-                        status: 'active',
-                        featured: '',
-                      });
-                    }}
+                    className="clear-filters-btn"
+                    onClick={clearAllFilters}
                   >
-                    Clear Filters
+                    Clear all
                   </Button>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Products Grid */}
-          <Col xs={12} md={9}>
-            {cartMessage && (
-              <Alert
-                variant={cartMessage.type}
-                dismissible
-                onClose={() => setCartMessage(null)}
-                className="mb-3"
-              >
-                {cartMessage.text}
-              </Alert>
-            )}
-            {loading ? (
-              <div className="text-center py-5">
-                <Spinner animation="border" role="status" />
-                <p className="mt-2 text-muted">Loading products...</p>
-              </div>
-            ) : products.length === 0 ? (
-              <Card>
-                <Card.Body className="text-center py-5">
-                  <p className="text-muted">No products found.</p>
-                </Card.Body>
-              </Card>
-            ) : (
-              <>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5>
-                    {pagination.total} {pagination.total === 1 ? 'Product' : 'Products'} Found
-                  </h5>
                 </div>
-                <Row className="g-4">
-                  {products.map((product) => (
-                    <Col key={product._id} xs={12} sm={6} lg={4}>
-                      <Card className="h-100 shadow-sm product-card">
-                        {product.images && product.images.length > 0 && (
-                          <div
-                            className="product-image"
-                            style={{
-                              height: '200px',
-                              backgroundImage: `url(${
-                                product.images[0].startsWith('data:image/')
-                                  ? product.images[0]
-                                  : product.images[0].startsWith('http')
-                                  ? product.images[0]
-                                  : `${api.defaults.baseURL.replace('/api', '')}${product.images[0]}`
-                              })`,
-                              backgroundSize: 'cover',
-                              backgroundPosition: 'center',
-                              backgroundColor: '#f8f9fa',
-                              cursor: 'pointer',
-                            }}
-                            onClick={() => navigate(`/products/${product._id}`)}
+
+                {/* Category Filter */}
+                <div className="filter-section">
+                  <div
+                    className="filter-section-header"
+                    onClick={() => toggleFilterSection('category')}
+                  >
+                    <span>Category</span>
+                    {expandedFilters.category ? (
+                      <FiChevronUp size={18} />
+                    ) : (
+                      <FiChevronDown size={18} />
+                    )}
+                  </div>
+                  {expandedFilters.category && (
+                    <div className="filter-section-content">
+                      <Form.Select
+                        value={filters.category}
+                        onChange={(e) => handleFilterChange('category', e.target.value)}
+                        className="filter-select"
+                      >
+                        <option value="">All Categories</option>
+                        {categories.map((cat) => (
+                          <option key={cat._id} value={cat.name}>
+                            {cat.name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Price Filter */}
+                <div className="filter-section">
+                  <div
+                    className="filter-section-header"
+                    onClick={() => toggleFilterSection('price')}
+                  >
+                    <span>Price</span>
+                    {expandedFilters.price ? (
+                      <FiChevronUp size={18} />
+                    ) : (
+                      <FiChevronDown size={18} />
+                    )}
+                  </div>
+                  {expandedFilters.price && (
+                    <div className="filter-section-content">
+                      <div className="price-inputs">
+                        <Form.Group>
+                          <Form.Label>Min Price</Form.Label>
+                          <Form.Control
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={filters.minPrice}
+                            onChange={(e) => handleFilterChange('minPrice', e.target.value)}
                           />
-                        )}
-                        <Card.Body className="d-flex flex-column">
-                          <div className="mb-2">
-                            {product.featured && (
-                              <Badge bg="primary" className="me-2">
-                                Featured
-                              </Badge>
-                            )}
-                            {product.category && (
-                              <Badge bg="secondary">
-                                {typeof product.category === 'object' && product.category?.name
-                                  ? product.category.name
-                                  : typeof product.category === 'string'
-                                    ? product.category
-                                    : 'Uncategorized'}
-                              </Badge>
-                            )}
-                          </div>
-                          <Card.Title
-                            className="h6"
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => navigate(`/products/${product._id}`)}
-                          >
-                            {product.name}
-                          </Card.Title>
-                          {product.description && (
-                            <Card.Text className="text-muted small flex-grow-1">
-                              {product.description.length > 100
-                                ? `${product.description.substring(0, 100)}...`
-                                : product.description}
-                            </Card.Text>
-                          )}
-                          <div className="mt-auto">
-                            <div className="d-flex align-items-center gap-2 mb-2">
-                              <span className="h5 mb-0 text-primary">
-                                ${product.price?.toFixed(2) || '0.00'}
-                              </span>
-                              {product.compareAtPrice && product.compareAtPrice > product.price && (
-                                <span className="text-muted text-decoration-line-through">
-                                  ${product.compareAtPrice.toFixed(2)}
-                                </span>
+                        </Form.Group>
+                        <Form.Group>
+                          <Form.Label>Max Price</Form.Label>
+                          <Form.Control
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                            value={filters.maxPrice}
+                            onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
+                          />
+                        </Form.Group>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Featured Filter */}
+                <div className="filter-section">
+                  <div
+                    className="filter-section-header"
+                    onClick={() => toggleFilterSection('featured')}
+                  >
+                    <span>Featured</span>
+                    {expandedFilters.featured ? (
+                      <FiChevronUp size={18} />
+                    ) : (
+                      <FiChevronDown size={18} />
+                    )}
+                  </div>
+                  {expandedFilters.featured && (
+                    <div className="filter-section-content">
+                      <Form.Select
+                        value={filters.featured}
+                        onChange={(e) => handleFilterChange('featured', e.target.value)}
+                        className="filter-select"
+                      >
+                        <option value="">All Products</option>
+                        <option value="true">Featured Only</option>
+                      </Form.Select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Col>
+
+            {/* Products Grid */}
+            <Col xs={12} md={9} className="products-section">
+              {cartMessage && (
+                <Alert
+                  variant={cartMessage.type}
+                  dismissible
+                  onClose={() => setCartMessage(null)}
+                  className="mb-3"
+                >
+                  {cartMessage.text}
+                </Alert>
+              )}
+
+              {/* Results Header */}
+              <div className="results-header">
+                <div className="results-count">
+                  {loading ? (
+                    <span>Loading...</span>
+                  ) : (
+                    <span>
+                      {pagination.total > 0
+                        ? `${pagination.total} ${pagination.total === 1 ? 'result' : 'results'}`
+                        : 'No results found'}
+                    </span>
+                  )}
+                </div>
+                <div className="sort-options">
+                  <Form.Select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="sort-select"
+                    size="sm"
+                  >
+                    <option value="relevance">Sort by: Relevance</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="name">Name: A to Z</option>
+                  </Form.Select>
+                </div>
+              </div>
+
+              {loading ? (
+                <div className="loading-container">
+                  <Spinner animation="border" role="status" />
+                  <p className="mt-3 text-muted">Loading products...</p>
+                </div>
+              ) : products.length === 0 ? (
+                <div className="no-products">
+                  <div className="no-products-content">
+                    <p className="text-muted">No products found matching your criteria.</p>
+                    <Button variant="outline-primary" onClick={clearAllFilters}>
+                      Clear Filters
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Row className="products-grid">
+                    {products.map((product) => {
+                      const discount = calculateDiscount(
+                        product.price,
+                        product.compareAtPrice
+                      );
+                      return (
+                        <Col key={product._id} xs={6} sm={6} md={4} lg={3} className="product-col">
+                          <Card className="product-card">
+                            <div className="product-image-wrapper">
+                              {product.images && product.images.length > 0 && (
+                                <div
+                                  className="product-image"
+                                  style={{
+                                    backgroundImage: `url(${getImageUrl(product.images[0])})`,
+                                  }}
+                                  onClick={() => navigate(`/products/${product._id}`)}
+                                />
+                              )}
+                              {product.featured && (
+                                <Badge className="featured-badge">Featured</Badge>
+                              )}
+                              {discount > 0 && (
+                                <Badge className="discount-badge">-{discount}%</Badge>
                               )}
                             </div>
-                            <div className="d-flex justify-content-between align-items-center">
-                              <small className="text-muted">
-                                Stock: {product.stock ?? 0}
-                              </small>
+                            <Card.Body className="product-card-body">
+                              <div className="product-category">
+                                {product.category && (
+                                  <span className="category-tag">
+                                    {typeof product.category === 'object' && product.category?.name
+                                      ? product.category.name
+                                      : typeof product.category === 'string'
+                                        ? product.category
+                                        : 'Uncategorized'}
+                                  </span>
+                                )}
+                              </div>
+                              <Card.Title
+                                className="product-title"
+                                onClick={() => navigate(`/products/${product._id}`)}
+                              >
+                                {product.name}
+                              </Card.Title>
+                              {product.description && (
+                                <Card.Text className="product-description">
+                                  {product.description.length > 80
+                                    ? `${product.description.substring(0, 80)}...`
+                                    : product.description}
+                                </Card.Text>
+                              )}
+                              <div className="product-rating">
+                                <div className="stars">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <FiStar
+                                      key={star}
+                                      size={14}
+                                      fill="#ffa500"
+                                      color="#ffa500"
+                                    />
+                                  ))}
+                                </div>
+                                <span className="rating-text">(0)</span>
+                              </div>
+                              <div className="product-price-section">
+                                <div className="price-row">
+                                  <span className="current-price">
+                                    ${product.price?.toFixed(2) || '0.00'}
+                                  </span>
+                                  {product.compareAtPrice &&
+                                    product.compareAtPrice > product.price && (
+                                      <span className="original-price">
+                                        ${product.compareAtPrice.toFixed(2)}
+                                      </span>
+                                    )}
+                                </div>
+                                {discount > 0 && (
+                                  <div className="save-amount">
+                                    You save ${(product.compareAtPrice - product.price).toFixed(2)}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="product-stock">
+                                {product.stock > 0 ? (
+                                  <span className="in-stock">
+                                    {product.stock} in stock
+                                  </span>
+                                ) : (
+                                  <span className="out-of-stock">Out of stock</span>
+                                )}
+                              </div>
                               <Button
-                                size="sm"
-                                variant="primary"
-                                disabled={addingToCart === product._id || (product.stock ?? 0) === 0}
+                                variant="warning"
+                                className="add-to-cart-btn w-100"
+                                disabled={
+                                  addingToCart === product._id || (product.stock ?? 0) === 0
+                                }
                                 onClick={() => handleAddToCart(product._id)}
                               >
                                 {addingToCart === product._id ? (
                                   <>
-                                    <Spinner size="sm" className="me-1" />
+                                    <Spinner size="sm" className="me-2" />
                                     Adding...
                                   </>
                                 ) : (
                                   'Add to Cart'
                                 )}
                               </Button>
-                            </div>
-                          </div>
-                        </Card.Body>
-                      </Card>
-                    </Col>
-                  ))}
-                </Row>
+                            </Card.Body>
+                          </Card>
+                        </Col>
+                      );
+                    })}
+                  </Row>
 
-                {/* Pagination */}
-                {pagination.pages > 1 && (
-                  <div className="d-flex justify-content-center mt-4">
-                    <div className="d-flex gap-2">
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        disabled={pagination.page === 1}
-                        onClick={() => handlePageChange(pagination.page - 1)}
-                      >
-                        Previous
-                      </Button>
-                      {Array.from({ length: pagination.pages }, (_, i) => i + 1)
-                        .filter(
-                          (page) =>
-                            page === 1 ||
-                            page === pagination.pages ||
-                            (page >= pagination.page - 1 && page <= pagination.page + 1)
-                        )
-                        .map((page, idx, arr) => (
-                          <div key={page} className="d-flex gap-1">
-                            {idx > 0 && arr[idx - 1] !== page - 1 && (
-                              <span className="px-2">...</span>
-                            )}
-                            <Button
-                              variant={pagination.page === page ? 'primary' : 'outline-primary'}
-                              size="sm"
-                              onClick={() => handlePageChange(page)}
-                            >
-                              {page}
-                            </Button>
-                          </div>
-                        ))}
-                      <Button
-                        variant="outline-primary"
-                        size="sm"
-                        disabled={pagination.page === pagination.pages}
-                        onClick={() => handlePageChange(pagination.page + 1)}
-                      >
-                        Next
-                      </Button>
+                  {/* Pagination */}
+                  {pagination.pages > 1 && (
+                    <div className="pagination-container">
+                      <div className="pagination">
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          disabled={pagination.page === 1}
+                          onClick={() => handlePageChange(pagination.page - 1)}
+                        >
+                          Previous
+                        </Button>
+                        <div className="page-numbers">
+                          {Array.from({ length: pagination.pages }, (_, i) => i + 1)
+                            .filter(
+                              (page) =>
+                                page === 1 ||
+                                page === pagination.pages ||
+                                (page >= pagination.page - 1 && page <= pagination.page + 1)
+                            )
+                            .map((page, idx, arr) => (
+                              <div key={page} className="page-group">
+                                {idx > 0 && arr[idx - 1] !== page - 1 && (
+                                  <span className="page-ellipsis">...</span>
+                                )}
+                                <Button
+                                  variant={pagination.page === page ? 'warning' : 'outline-secondary'}
+                                  size="sm"
+                                  onClick={() => handlePageChange(page)}
+                                  className="page-btn"
+                                >
+                                  {page}
+                                </Button>
+                              </div>
+                            ))}
+                        </div>
+                        <Button
+                          variant="outline-secondary"
+                          size="sm"
+                          disabled={pagination.page === pagination.pages}
+                          onClick={() => handlePageChange(pagination.page + 1)}
+                        >
+                          Next
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </>
-            )}
-          </Col>
-        </Row>
-      </Container>
+                  )}
+                </>
+              )}
+            </Col>
+          </Row>
+        </Container>
+      </div>
     </>
   );
 };
 
 export default ProductListingPage;
-

@@ -11,13 +11,15 @@ import {
   Spinner,
   Carousel,
   Table,
+  Form,
 } from 'react-bootstrap';
-import { FiShoppingCart, FiArrowLeft } from 'react-icons/fi';
+import { FiShoppingCart, FiArrowLeft, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import api from '../api/client';
+import './ProductDetailsPage.css';
 
 const ProductDetailsPage = () => {
   const { id } = useParams();
@@ -32,6 +34,7 @@ const ProductDetailsPage = () => {
   const [addingToCart, setAddingToCart] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [cartMessage, setCartMessage] = useState(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
     fetchProduct();
@@ -98,16 +101,37 @@ const ProductDetailsPage = () => {
     }
   };
 
+  const getImageUrl = (image) => {
+    if (!image) return '';
+    if (image.startsWith('data:image/')) return image;
+    if (image.startsWith('http')) return image;
+    return `${api.defaults.baseURL.replace('/api', '')}${image}`;
+  };
+
+  const nextImage = () => {
+    if (product.images && product.images.length > 0) {
+      setSelectedImageIndex((prev) => (prev + 1) % product.images.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (product.images && product.images.length > 0) {
+      setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
+    }
+  };
+
   if (loading) {
     return (
       <>
         <AppNavbar />
-        <Container className="py-5">
-          <div className="text-center">
-            <Spinner animation="border" role="status" />
-            <p className="mt-2 text-muted">Loading product...</p>
-          </div>
-        </Container>
+        <div className="product-details-page">
+          <Container className="py-5">
+            <div className="text-center">
+              <Spinner animation="border" role="status" />
+              <p className="mt-2 text-muted">Loading product...</p>
+            </div>
+          </Container>
+        </div>
       </>
     );
   }
@@ -116,13 +140,15 @@ const ProductDetailsPage = () => {
     return (
       <>
         <AppNavbar />
-        <Container className="py-5">
-          <Alert variant="danger">{error || 'Product not found'}</Alert>
-          <Button variant="outline-secondary" onClick={() => navigate('/')}>
-            <FiArrowLeft className="me-2" />
-            Back to Products
-          </Button>
-        </Container>
+        <div className="product-details-page">
+          <Container className="py-5">
+            <Alert variant="danger">{error || 'Product not found'}</Alert>
+            <Button variant="outline-secondary" onClick={() => navigate('/')} className="back-btn">
+              <FiArrowLeft className="me-2" />
+              Back to Products
+            </Button>
+          </Container>
+        </div>
       </>
     );
   }
@@ -132,330 +158,445 @@ const ProductDetailsPage = () => {
       ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
       : 0;
 
+  const saveAmount = product.compareAtPrice && product.compareAtPrice > product.price
+    ? (product.compareAtPrice - product.price).toFixed(2)
+    : 0;
+
   return (
     <>
       <AppNavbar />
-      <Container className="py-4">
-        {cartMessage && (
-          <Alert
-            variant={cartMessage.type}
-            dismissible
-            onClose={() => setCartMessage(null)}
-            className="mb-3"
+      <div className="product-details-page">
+        <Container className="product-details-container">
+          {cartMessage && (
+            <Alert
+              variant={cartMessage.type}
+              dismissible
+              onClose={() => setCartMessage(null)}
+              className="cart-message-alert"
+            >
+              {cartMessage.text}
+            </Alert>
+          )}
+
+          <Button
+            variant="link"
+            className="back-to-products-btn"
+            onClick={() => navigate('/')}
           >
-            {cartMessage.text}
-          </Alert>
-        )}
+            <FiArrowLeft className="me-2" />
+            Back to Products
+          </Button>
 
-        <Button
-          variant="outline-secondary"
-          className="mb-3"
-          onClick={() => navigate('/')}
-        >
-          <FiArrowLeft className="me-2" />
-          Back to Products
-        </Button>
-
-        <Row className="g-4">
-          {/* Product Images */}
-          <Col xs={12} md={6}>
-            <Card>
-              <Card.Body>
-                {product.images && product.images.length > 0 ? (
-                  <Carousel interval={null} variant="dark">
-                    {product.images.map((image, index) => {
-                      // Handle both base64 (starts with data:image/) and URL strings
-                      const imageUrl = image.startsWith('data:image/')
-                        ? image
-                        : image.startsWith('http')
-                        ? image
-                        : `${api.defaults.baseURL.replace('/api', '')}${image}`;
-                      return (
-                        <Carousel.Item key={index}>
-                          <img
-                            className="d-block w-100"
-                            src={imageUrl}
-                            alt={`${product.name} ${index + 1}`}
-                            style={{ maxHeight: '500px', objectFit: 'contain' }}
-                          />
-                        </Carousel.Item>
-                      );
-                    })}
-                  </Carousel>
-                ) : (
-                  <div
-                    className="bg-light d-flex align-items-center justify-content-center"
-                    style={{ height: '400px' }}
-                  >
-                    <span className="text-muted">No image available</span>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Product Info */}
-          <Col xs={12} md={6}>
-            <Card>
-              <Card.Body>
-                <div className="d-flex justify-content-between align-items-start mb-2">
-                  <div>
-                    {product.category && (
-                      <Badge bg="secondary" className="mb-2">
-                        {typeof product.category === 'object' && product.category?.name
-                          ? product.category.name
-                          : typeof product.category === 'string'
-                            ? product.category
-                            : 'Uncategorized'}
-                      </Badge>
-                    )}
-                    {product.featured && (
-                      <Badge bg="warning" text="dark" className="mb-2 ms-2">
-                        Featured
-                      </Badge>
-                    )}
-                    {discount > 0 && (
-                      <Badge bg="danger" className="mb-2 ms-2">
-                        {discount}% OFF
-                      </Badge>
-                    )}
-                  </div>
-                  <Badge bg={product.status === 'active' ? 'success' : 'secondary'}>
-                    {product.status}
-                  </Badge>
-                </div>
-
-                <h2 className="mb-3">{product.name}</h2>
-
-                <div className="mb-3">
-                  <div className="d-flex align-items-center gap-3">
-                    <h4 className="mb-0 text-primary">${product.price?.toFixed(2) || '0.00'}</h4>
-                    {product.compareAtPrice && product.compareAtPrice > product.price && (
-                      <span className="text-muted text-decoration-line-through">
-                        ${product.compareAtPrice.toFixed(2)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {product.description && (
-                  <div className="mb-4">
-                    <h5>Description</h5>
-                    <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
-                      {product.description}
-                    </p>
+          <Row className="product-details-row">
+            {/* Product Images */}
+            <Col xs={12} md={6} lg={5} className="product-images-col">
+              <div className="product-images-wrapper">
+                {/* Thumbnail Images */}
+                {product.images && product.images.length > 1 && (
+                  <div className="thumbnail-images">
+                    {product.images.map((image, index) => (
+                      <div
+                        key={index}
+                        className={`thumbnail-item ${selectedImageIndex === index ? 'active' : ''}`}
+                        onClick={() => setSelectedImageIndex(index)}
+                      >
+                        <img
+                          src={getImageUrl(image)}
+                          alt={`${product.name} thumbnail ${index + 1}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 )}
 
-                {/* Product Details Table */}
-                <Table bordered className="mb-4">
-                  <tbody>
-                    {product.sku && (
-                      <tr>
-                        <th style={{ width: '40%' }}>SKU</th>
-                        <td>{product.sku}</td>
-                      </tr>
-                    )}
-                    <tr>
-                      <th>Stock</th>
-                      <td>
-                        {product.stock > 0 ? (
-                          <Badge bg="success">{product.stock} available</Badge>
-                        ) : (
-                          <Badge bg="danger">Out of Stock</Badge>
-                        )}
-                      </td>
-                    </tr>
-                    {product.vendor && (
-                      <tr>
-                        <th>Vendor</th>
-                        <td>
-                          {typeof product.vendor === 'object' && product.vendor?.name
-                            ? product.vendor.name
-                            : typeof product.vendor === 'string'
-                              ? product.vendor
-                              : '-'}
-                        </td>
-                      </tr>
-                    )}
-                    {product.weight && (
-                      <tr>
-                        <th>Weight</th>
-                        <td>
-                          {product.weight}{' '}
-                          {typeof product.weightUnit === 'object' && product.weightUnit?.symbol
-                            ? product.weightUnit.symbol
-                            : typeof product.weightUnit === 'object' && product.weightUnit?.name
-                            ? product.weightUnit.name
-                            : typeof product.weightUnit === 'string'
-                            ? product.weightUnit
-                            : 'kg'}
-                        </td>
-                      </tr>
-                    )}
-                    {product.dimensions && (
-                      <tr>
-                        <th>Dimensions</th>
-                        <td>
-                          {product.dimensions.length} × {product.dimensions.width} ×{' '}
-                          {product.dimensions.height} {product.dimensionUnit || 'cm'}
-                        </td>
-                      </tr>
-                    )}
-                    {product.color && (
-                      <tr>
-                        <th>Color</th>
-                        <td>{product.color}</td>
-                      </tr>
-                    )}
-                    {product.size && (
-                      <tr>
-                        <th>Size</th>
-                        <td>
-                          {typeof product.size === 'object' && product.size?.name
-                            ? product.size.name
-                            : typeof product.size === 'object' && product.size?.code
-                            ? product.size.code
-                            : typeof product.size === 'string'
-                            ? product.size
-                            : '-'}
-                        </td>
-                      </tr>
-                    )}
-                    {product.brand && (
-                      <tr>
-                        <th>Brand</th>
-                        <td>{product.brand}</td>
-                      </tr>
-                    )}
-                    {product.material && (
-                      <tr>
-                        <th>Material</th>
-                        <td>{product.material}</td>
-                      </tr>
-                    )}
-                    {product.tags && product.tags.length > 0 && (
-                      <tr>
-                        <th>Tags</th>
-                        <td>
-                          {product.tags.map((tag, index) => (
-                            <Badge key={index} bg="info" className="me-1">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </Table>
-
-                {/* Add to Cart */}
-                {product.stock > 0 ? (
-                  <div className="d-flex gap-2 align-items-center">
-                    <div className="d-flex align-items-center gap-2">
-                      <label htmlFor="quantity">Quantity:</label>
-                      <input
-                        id="quantity"
-                        type="number"
-                        min="1"
-                        max={product.stock}
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(1, Math.min(product.stock, parseInt(e.target.value) || 1)))}
-                        className="form-control"
-                        style={{ width: '80px' }}
-                      />
-                    </div>
-                    <Button
-                      variant="primary"
-                      size="lg"
-                      onClick={handleAddToCart}
-                      disabled={addingToCart || product.stock === 0}
-                    >
-                      {addingToCart ? (
-                        <>
-                          <Spinner size="sm" animation="border" className="me-2" />
-                          Adding...
-                        </>
-                      ) : (
-                        <>
-                          <FiShoppingCart className="me-2" />
-                          Add to Cart
-                        </>
+                {/* Main Image */}
+                <div className="main-image-container">
+                  {product.images && product.images.length > 0 ? (
+                    <>
+                      {product.images.length > 1 && (
+                        <Button
+                          variant="link"
+                          className="image-nav-btn prev-btn"
+                          onClick={prevImage}
+                        >
+                          <FiChevronLeft size={24} />
+                        </Button>
                       )}
-                    </Button>
-                  </div>
-                ) : (
-                  <Alert variant="warning">This product is currently out of stock.</Alert>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
+                      <div className="main-image">
+                        <img
+                          src={getImageUrl(product.images[selectedImageIndex])}
+                          alt={product.name}
+                        />
+                      </div>
+                      {product.images.length > 1 && (
+                        <Button
+                          variant="link"
+                          className="image-nav-btn next-btn"
+                          onClick={nextImage}
+                        >
+                          <FiChevronRight size={24} />
+                        </Button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="no-image-placeholder">
+                      <span className="text-muted">No image available</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </Col>
 
-          {/* Additional Details */}
+            {/* Product Info */}
+            <Col xs={12} md={6} lg={4} className="product-info-col">
+              <div className="product-info-wrapper">
+                {/* Breadcrumb */}
+                {product.category && (
+                  <div className="product-breadcrumb">
+                    <span className="breadcrumb-link" onClick={() => navigate('/')}>
+                      Shop
+                    </span>
+                    <span className="breadcrumb-separator">›</span>
+                    <span className="breadcrumb-text">
+                      {typeof product.category === 'object' && product.category?.name
+                        ? product.category.name
+                        : typeof product.category === 'string'
+                          ? product.category
+                          : 'Uncategorized'}
+                    </span>
+                  </div>
+                )}
+
+                {/* Product Title */}
+                <h1 className="product-title">{product.name}</h1>
+
+                {/* Rating */}
+                <div className="product-rating-section">
+                  <div className="stars-rating">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <FiStar
+                        key={star}
+                        size={18}
+                        fill="#ffa500"
+                        color="#ffa500"
+                      />
+                    ))}
+                  </div>
+                  <span className="rating-link">(0)</span>
+                </div>
+
+                {/* Price Section */}
+                <div className="product-price-section">
+                  <div className="price-row">
+                    <span className="current-price">${product.price?.toFixed(2) || '0.00'}</span>
+                    {product.compareAtPrice && product.compareAtPrice > product.price && (
+                      <span className="original-price">${product.compareAtPrice.toFixed(2)}</span>
+                    )}
+                  </div>
+                  {discount > 0 && (
+                    <>
+                      <div className="discount-badge-large">{discount}% OFF</div>
+                      <div className="save-amount-text">
+                        You save ${saveAmount}
+                      </div>
+                    </>
+                  )}
+                  {product.stock > 0 && (
+                    <div className="stock-info">
+                      <span className="in-stock-badge">In Stock</span>
+                      <span className="stock-count">{product.stock} available</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Product Badges */}
+                <div className="product-badges">
+                  {product.featured && (
+                    <Badge className="featured-badge-large">Featured</Badge>
+                  )}
+                  {product.category && (
+                    <Badge className="category-badge-large">
+                      {typeof product.category === 'object' && product.category?.name
+                        ? product.category.name
+                        : typeof product.category === 'string'
+                          ? product.category
+                          : 'Uncategorized'}
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Description */}
+                {product.description && (
+                  <div className="product-description-section">
+                    <h5>About this item</h5>
+                    <p className="description-text">{product.description}</p>
+                  </div>
+                )}
+
+                {/* Key Features */}
+                <div className="product-features">
+                  {product.sku && (
+                    <div className="feature-item">
+                      <span className="feature-label">SKU:</span>
+                      <span className="feature-value">{product.sku}</span>
+                    </div>
+                  )}
+                  {product.vendor && (
+                    <div className="feature-item">
+                      <span className="feature-label">Vendor:</span>
+                      <span className="feature-value">
+                        {typeof product.vendor === 'object' && product.vendor?.name
+                          ? product.vendor.name
+                          : typeof product.vendor === 'string'
+                            ? product.vendor
+                            : '-'}
+                      </span>
+                    </div>
+                  )}
+                  {product.brand && (
+                    <div className="feature-item">
+                      <span className="feature-label">Brand:</span>
+                      <span className="feature-value">{product.brand}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Add to Cart Section */}
+                <div className="add-to-cart-section">
+                  {product.stock > 0 ? (
+                    <>
+                      <div className="quantity-selector">
+                        <label htmlFor="quantity">Quantity:</label>
+                        <Form.Select
+                          id="quantity"
+                          value={quantity}
+                          onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+                          className="quantity-select"
+                        >
+                          {Array.from({ length: Math.min(product.stock, 10) }, (_, i) => i + 1).map((num) => (
+                            <option key={num} value={num}>
+                              {num}
+                            </option>
+                          ))}
+                        </Form.Select>
+                      </div>
+                      <Button
+                        variant="warning"
+                        size="lg"
+                        className="add-to-cart-btn-large"
+                        onClick={handleAddToCart}
+                        disabled={addingToCart || product.stock === 0}
+                      >
+                        {addingToCart ? (
+                          <>
+                            <Spinner size="sm" animation="border" className="me-2" />
+                            Adding...
+                          </>
+                        ) : (
+                          <>
+                            <FiShoppingCart className="me-2" />
+                            Add to Cart
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline-warning"
+                        size="lg"
+                        className="buy-now-btn"
+                        disabled={addingToCart || product.stock === 0}
+                      >
+                        Buy Now
+                      </Button>
+                    </>
+                  ) : (
+                    <Alert variant="warning" className="out-of-stock-alert">
+                      This product is currently out of stock.
+                    </Alert>
+                  )}
+                </div>
+              </div>
+            </Col>
+
+            {/* Product Details Card */}
+            <Col xs={12} md={12} lg={3} className="product-details-card-col">
+              <Card className="product-details-card">
+                <Card.Header>
+                  <h5 className="mb-0">Product Details</h5>
+                </Card.Header>
+                <Card.Body>
+                  <Table borderless className="details-table">
+                    <tbody>
+                      {product.sku && (
+                        <tr>
+                          <td className="detail-label">SKU</td>
+                          <td className="detail-value">{product.sku}</td>
+                        </tr>
+                      )}
+                      <tr>
+                        <td className="detail-label">Stock</td>
+                        <td className="detail-value">
+                          {product.stock > 0 ? (
+                            <Badge bg="success">{product.stock} available</Badge>
+                          ) : (
+                            <Badge bg="danger">Out of Stock</Badge>
+                          )}
+                        </td>
+                      </tr>
+                      {product.vendor && (
+                        <tr>
+                          <td className="detail-label">Vendor</td>
+                          <td className="detail-value">
+                            {typeof product.vendor === 'object' && product.vendor?.name
+                              ? product.vendor.name
+                              : typeof product.vendor === 'string'
+                                ? product.vendor
+                                : '-'}
+                          </td>
+                        </tr>
+                      )}
+                      {product.weight && (
+                        <tr>
+                          <td className="detail-label">Weight</td>
+                          <td className="detail-value">
+                            {product.weight}{' '}
+                            {typeof product.weightUnit === 'object' && product.weightUnit?.symbol
+                              ? product.weightUnit.symbol
+                              : typeof product.weightUnit === 'object' && product.weightUnit?.name
+                                ? product.weightUnit.name
+                                : typeof product.weightUnit === 'string'
+                                  ? product.weightUnit
+                                  : 'kg'}
+                          </td>
+                        </tr>
+                      )}
+                      {product.dimensions && (
+                        <tr>
+                          <td className="detail-label">Dimensions</td>
+                          <td className="detail-value">
+                            {product.dimensions.length} × {product.dimensions.width} ×{' '}
+                            {product.dimensions.height} {product.dimensionUnit || 'cm'}
+                          </td>
+                        </tr>
+                      )}
+                      {product.color && (
+                        <tr>
+                          <td className="detail-label">Color</td>
+                          <td className="detail-value">{product.color}</td>
+                        </tr>
+                      )}
+                      {product.size && (
+                        <tr>
+                          <td className="detail-label">Size</td>
+                          <td className="detail-value">
+                            {typeof product.size === 'object' && product.size?.name
+                              ? product.size.name
+                              : typeof product.size === 'object' && product.size?.code
+                                ? product.size.code
+                                : typeof product.size === 'string'
+                                  ? product.size
+                                  : '-'}
+                          </td>
+                        </tr>
+                      )}
+                      {product.brand && (
+                        <tr>
+                          <td className="detail-label">Brand</td>
+                          <td className="detail-value">{product.brand}</td>
+                        </tr>
+                      )}
+                      {product.material && (
+                        <tr>
+                          <td className="detail-label">Material</td>
+                          <td className="detail-value">{product.material}</td>
+                        </tr>
+                      )}
+                      {product.tags && product.tags.length > 0 && (
+                        <tr>
+                          <td className="detail-label">Tags</td>
+                          <td className="detail-value">
+                            <div className="tags-container">
+                              {product.tags.map((tag, index) => (
+                                <Badge key={index} bg="info" className="tag-badge">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </Table>
+                </Card.Body>
+              </Card>
+            </Col>
+          </Row>
+
+          {/* Additional Information */}
           {(product.specifications ||
             product.warranty ||
             product.shippingInfo ||
             product.returnPolicy) && (
-            <Col xs={12}>
-              <Card>
-                <Card.Header>
-                  <h5 className="mb-0">Additional Information</h5>
-                </Card.Header>
-                <Card.Body>
-                  <Row>
-                    {product.specifications && (
-                      <Col xs={12} md={6} className="mb-3">
-                        <h6>Specifications</h6>
-                        {typeof product.specifications === 'string' ? (
+            <Row className="additional-info-row">
+              <Col xs={12}>
+                <Card className="additional-info-card">
+                  <Card.Header>
+                    <h5 className="mb-0">Additional Information</h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <Row>
+                      {product.specifications && (
+                        <Col xs={12} md={6} className="mb-3">
+                          <h6>Specifications</h6>
+                          {typeof product.specifications === 'string' ? (
+                            <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
+                              {product.specifications}
+                            </p>
+                          ) : (
+                            <Table size="sm" bordered>
+                              <tbody>
+                                {Object.entries(product.specifications).map(([key, value]) => (
+                                  <tr key={key}>
+                                    <th>{key}</th>
+                                    <td>{value}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                          )}
+                        </Col>
+                      )}
+                      {product.warranty && (
+                        <Col xs={12} md={6} className="mb-3">
+                          <h6>Warranty</h6>
+                          <p className="text-muted">{product.warranty}</p>
+                        </Col>
+                      )}
+                      {product.shippingInfo && (
+                        <Col xs={12} md={6} className="mb-3">
+                          <h6>Shipping Information</h6>
                           <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
-                            {product.specifications}
+                            {product.shippingInfo}
                           </p>
-                        ) : (
-                          <Table size="sm" bordered>
-                            <tbody>
-                              {Object.entries(product.specifications).map(([key, value]) => (
-                                <tr key={key}>
-                                  <th>{key}</th>
-                                  <td>{value}</td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </Table>
-                        )}
-                      </Col>
-                    )}
-                    {product.warranty && (
-                      <Col xs={12} md={6} className="mb-3">
-                        <h6>Warranty</h6>
-                        <p className="text-muted">{product.warranty}</p>
-                      </Col>
-                    )}
-                    {product.shippingInfo && (
-                      <Col xs={12} md={6} className="mb-3">
-                        <h6>Shipping Information</h6>
-                        <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
-                          {product.shippingInfo}
-                        </p>
-                      </Col>
-                    )}
-                    {product.returnPolicy && (
-                      <Col xs={12} md={6} className="mb-3">
-                        <h6>Return Policy</h6>
-                        <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
-                          {product.returnPolicy}
-                        </p>
-                      </Col>
-                    )}
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
+                        </Col>
+                      )}
+                      {product.returnPolicy && (
+                        <Col xs={12} md={6} className="mb-3">
+                          <h6>Return Policy</h6>
+                          <p className="text-muted" style={{ whiteSpace: 'pre-wrap' }}>
+                            {product.returnPolicy}
+                          </p>
+                        </Col>
+                      )}
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
           )}
-        </Row>
-      </Container>
+        </Container>
+      </div>
     </>
   );
 };
 
 export default ProductDetailsPage;
-
