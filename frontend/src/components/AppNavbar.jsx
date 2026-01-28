@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Navbar, Nav, NavDropdown, Button, Container, Badge, InputGroup, Form } from 'react-bootstrap';
+import { Nav, NavDropdown, Button, Container, Badge, InputGroup, Form } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiShoppingCart, FiMoon, FiSun, FiChevronDown, FiSearch } from 'react-icons/fi';
 

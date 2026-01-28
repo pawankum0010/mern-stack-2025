@@ -9,7 +9,6 @@ import {
   Container,
   Row,
   Spinner,
-  Carousel,
   Table,
   Form,
 } from 'react-bootstrap';
