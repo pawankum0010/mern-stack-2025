@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { CurrencyProvider } from './context/CurrencyContext';
 import ProductsPage from './pages/ProductsPage';
 import ProductListingPage from './pages/ProductListingPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
@@ -24,12 +25,14 @@ import StatesPage from './pages/StatesPage';
 import WeightUnitsPage from './pages/WeightUnitsPage';
 import SizesPage from './pages/SizesPage';
 import PincodesPage from './pages/PincodesPage';
+import CurrencySettingsPage from './pages/CurrencySettingsPage';
 import CustomerActivityLogsPage from './pages/CustomerActivityLogsPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
 import ActiveUsersReportPage from './pages/ActiveUsersReportPage';
 import HighestSellingProductsPage from './pages/HighestSellingProductsPage';
 import OrdersStatusReportPage from './pages/OrdersStatusReportPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
+import SupportPage from './pages/SupportPage';
 import AdminRedirect from './components/AdminRedirect';
 import DefaultRedirect from './components/DefaultRedirect';
 
@@ -39,8 +42,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <CartProvider>
-          <BrowserRouter
+        <CurrencyProvider>
+          <CartProvider>
+            <BrowserRouter
             future={{
               v7_startTransition: true,
               v7_relativeSplatPath: true,
@@ -58,6 +62,7 @@ function App() {
           <Route path="/admin/weight-units" element={<WeightUnitsPage />} />
           <Route path="/admin/sizes" element={<SizesPage />} />
           <Route path="/admin/pincodes" element={<PincodesPage />} />
+          <Route path="/admin/currencies" element={<CurrencySettingsPage />} />
           <Route path="/admin/customer-activity-logs" element={<CustomerActivityLogsPage />} />
           <Route path="/admin/error-logs" element={<ErrorLogsPage />} />
           <Route path="/admin/reports/active-users" element={<ActiveUsersReportPage />} />
@@ -76,11 +81,13 @@ function App() {
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="*" element={<DefaultRedirect />} />
         </Routes>
           </BrowserRouter>
-        </CartProvider>
+          </CartProvider>
+        </CurrencyProvider>
       </AuthProvider>
     </ThemeProvider>
   );

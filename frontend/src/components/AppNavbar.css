@@ -66,9 +66,9 @@
 .amazon-navbar-search {
   flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content: stretch;
   margin: 0 1rem;
-  max-width: 800px;
+  min-width: 0;
 }
 
 .navbar-search-form {

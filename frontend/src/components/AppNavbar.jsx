@@ -110,6 +110,7 @@ const AppNavbar = () => {
                   <NavDropdown.Item onClick={() => navigate('/admin/weight-units')}>Weight Units</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/sizes')}>Sizes</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/pincodes')}>Pincodes</NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/currencies')}>Currencies</NavDropdown.Item>
                 </NavDropdown>
                 <NavDropdown title="Reports" id="reports-dropdown" className="nav-dropdown-item">
                   <NavDropdown.Item onClick={() => navigate('/admin/reports/active-users')}>Active Users</NavDropdown.Item>
@@ -177,6 +178,7 @@ const AppNavbar = () => {
                     {!isAdmin && (
                       <>
                         <NavDropdown.Item onClick={() => navigate('/')}>Shop</NavDropdown.Item>
+                        <NavDropdown.Item onClick={() => navigate('/support')}>Support</NavDropdown.Item>
                       </>
                     )}
                     {isCustomer && (
@@ -184,17 +186,23 @@ const AppNavbar = () => {
                         <NavDropdown.Item onClick={() => navigate('/profile')}>Your Profile</NavDropdown.Item>
                         <NavDropdown.Item onClick={() => navigate('/orders')}>Your Orders</NavDropdown.Item>
                         <NavDropdown.Item onClick={() => navigate('/addresses')}>Your Addresses</NavDropdown.Item>
+                        <NavDropdown.Item onClick={() => navigate('/support')}>Support</NavDropdown.Item>
                       </>
-                    )}
-                    {isAdmin && user && (
-                      <NavDropdown.Item onClick={() => navigate('/admin/orders')}>Orders</NavDropdown.Item>
                     )}
                     <NavDropdown.Item onClick={handleLogout} className="logout-item">Sign Out</NavDropdown.Item>
                   </div>
                 </NavDropdown>
               </div>
             ) : (
-              <div className="amazon-auth-buttons">
+              <div className="amazon-auth-buttons d-flex align-items-center gap-3">
+                <Button
+                  variant="link"
+                  className="auth-link-btn"
+                  onClick={() => navigate('/support')}
+                  style={{ color: '#ffffff', fontSize: '0.875rem' }}
+                >
+                  Support
+                </Button>
                 <Button
                   variant="link"
                   className="auth-link-btn"

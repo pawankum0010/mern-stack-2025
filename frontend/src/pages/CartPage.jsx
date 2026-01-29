@@ -16,11 +16,13 @@ import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const CartPage = () => {
   const { isAuthenticated } = useAuth();
   const { refreshCart, getGuestCart, saveGuestCart } = useCart();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -209,7 +211,7 @@ const CartPage = () => {
                                 </div>
                               </div>
                             </td>
-                            <td>${price.toFixed(2)}</td>
+                            <td>{formatPrice(price)}</td>
                             <td>
                               <div className="d-flex align-items-center gap-2">
                                 <Button
@@ -237,7 +239,7 @@ const CartPage = () => {
                                 </Button>
                               </div>
                             </td>
-                            <td>${itemTotal.toFixed(2)}</td>
+                            <td>{formatPrice(itemTotal)}</td>
                             <td>
                               <Button
                                 size="sm"
@@ -273,7 +275,7 @@ const CartPage = () => {
                   <>
                     <div className="d-flex justify-content-between mb-3">
                       <span>Subtotal:</span>
-                      <strong>${calculateSubtotal().toFixed(2)}</strong>
+                      <strong>{formatPrice(calculateSubtotal())}</strong>
                     </div>
                     <div className="text-muted small mb-3">
                       Shipping charges will be calculated at checkout based on delivery address
@@ -281,7 +283,7 @@ const CartPage = () => {
                     <hr />
                     <div className="d-flex justify-content-between mb-4">
                       <strong>Subtotal:</strong>
-                      <strong className="h5">${calculateTotal().toFixed(2)}</strong>
+                      <strong className="h5">{formatPrice(calculateTotal())}</strong>
                     </div>
                     <div className="d-grid gap-2">
                       <Button

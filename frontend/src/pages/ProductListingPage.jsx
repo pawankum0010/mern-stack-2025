@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Badge, Button, Card, Col, Container, Form, Row, Spinner, Alert } from 'react-bootstrap';
+import { Button, Col, Container, Row, Spinner, Alert } from 'react-bootstrap';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiChevronDown, FiChevronUp, FiStar } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
+import ProductCard from '../components/ProductCard';
+import FilterSidebar from '../components/FilterSidebar';
+import ResultsHeader from '../components/ResultsHeader';
+import SEO from '../components/SEO';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import api from '../api/client';
@@ -213,140 +216,50 @@ const ProductListingPage = () => {
     });
   };
 
-  const getImageUrl = (image) => {
-    if (!image) return '';
-    if (image.startsWith('data:image/')) return image;
-    if (image.startsWith('http')) return image;
-    return `${api.defaults.baseURL.replace('/api', '')}${image}`;
-  };
 
-  const calculateDiscount = (price, comparePrice) => {
-    if (!comparePrice || comparePrice <= price) return 0;
-    return Math.round(((comparePrice - price) / comparePrice) * 100);
-  };
+  // Get category name for SEO if filter is applied
+  const categoryName = filters.category 
+    ? categories.find(cat => cat.name === filters.category)?.name || filters.category
+    : null;
+
+  const seoTitle = categoryName 
+    ? `Shop ${categoryName} Online | Fashion, Electronics & Study Materials`
+    : filters.search
+    ? `Search Results for "${filters.search}" | Soft Chilli eCommerce`
+    : 'Shop Online | Fashion, Electronics & Study Materials - Soft Chilli';
+
+  const seoDescription = categoryName
+    ? `Shop ${categoryName} products online at Soft Chilli. Best prices on ${categoryName.toLowerCase()} with fast delivery. Browse our wide selection of quality products.`
+    : filters.search
+    ? `Find ${filters.search} products at Soft Chilli. Browse our collection of fashion, electronics, and study materials.`
+    : 'Shop online at Soft Chilli - Your trusted eCommerce portal for Fashion, Electronics, Study Materials & more. Browse thousands of products from top brands with best prices and fast delivery.';
+
+  const seoKeywords = categoryName
+    ? `${categoryName.toLowerCase()}, online shopping, ${categoryName.toLowerCase()} products, soft chilli, ecommerce, buy ${categoryName.toLowerCase()} online`
+    : 'ecommerce, online shopping, fashion, electronics, study materials, books, soft chilli, erp softchilli, online store, shopping portal, buy online, fashion store, electronics store';
 
   return (
     <>
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        url={window.location.pathname + window.location.search}
+      />
       <AppNavbar />
       <div className="product-listing-page">
         <Container fluid className="main-content">
           <Row>
             {/* Filters Sidebar */}
             <Col xs={12} md={3} className="filters-sidebar">
-              <div className="filters-card">
-                <div className="filters-header">
-                  <h5>Filters</h5>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="clear-filters-btn"
-                    onClick={clearAllFilters}
-                  >
-                    Clear all
-                  </Button>
-                </div>
-
-                {/* Category Filter */}
-                <div className="filter-section">
-                  <div
-                    className="filter-section-header"
-                    onClick={() => toggleFilterSection('category')}
-                  >
-                    <span>Category</span>
-                    {expandedFilters.category ? (
-                      <FiChevronUp size={18} />
-                    ) : (
-                      <FiChevronDown size={18} />
-                    )}
-                  </div>
-                  {expandedFilters.category && (
-                    <div className="filter-section-content">
-                      <Form.Select
-                        value={filters.category}
-                        onChange={(e) => handleFilterChange('category', e.target.value)}
-                        className="filter-select"
-                      >
-                        <option value="">All Categories</option>
-                        {categories.map((cat) => (
-                          <option key={cat._id} value={cat.name}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </div>
-                  )}
-                </div>
-
-                {/* Price Filter */}
-                <div className="filter-section">
-                  <div
-                    className="filter-section-header"
-                    onClick={() => toggleFilterSection('price')}
-                  >
-                    <span>Price</span>
-                    {expandedFilters.price ? (
-                      <FiChevronUp size={18} />
-                    ) : (
-                      <FiChevronDown size={18} />
-                    )}
-                  </div>
-                  {expandedFilters.price && (
-                    <div className="filter-section-content">
-                      <div className="price-inputs">
-                        <Form.Group>
-                          <Form.Label>Min Price</Form.Label>
-                          <Form.Control
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            value={filters.minPrice}
-                            onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                          />
-                        </Form.Group>
-                        <Form.Group>
-                          <Form.Label>Max Price</Form.Label>
-                          <Form.Control
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                            value={filters.maxPrice}
-                            onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                          />
-                        </Form.Group>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Featured Filter */}
-                <div className="filter-section">
-                  <div
-                    className="filter-section-header"
-                    onClick={() => toggleFilterSection('featured')}
-                  >
-                    <span>Featured</span>
-                    {expandedFilters.featured ? (
-                      <FiChevronUp size={18} />
-                    ) : (
-                      <FiChevronDown size={18} />
-                    )}
-                  </div>
-                  {expandedFilters.featured && (
-                    <div className="filter-section-content">
-                      <Form.Select
-                        value={filters.featured}
-                        onChange={(e) => handleFilterChange('featured', e.target.value)}
-                        className="filter-select"
-                      >
-                        <option value="">All Products</option>
-                        <option value="true">Featured Only</option>
-                      </Form.Select>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <FilterSidebar
+                categories={categories}
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                onClearFilters={clearAllFilters}
+                expandedFilters={expandedFilters}
+                onToggleSection={toggleFilterSection}
+              />
             </Col>
 
             {/* Products Grid */}
@@ -363,32 +276,13 @@ const ProductListingPage = () => {
               )}
 
               {/* Results Header */}
-              <div className="results-header">
-                <div className="results-count">
-                  {loading ? (
-                    <span>Loading...</span>
-                  ) : (
-                    <span>
-                      {pagination.total > 0
-                        ? `${pagination.total} ${pagination.total === 1 ? 'result' : 'results'}`
-                        : 'No results found'}
-                    </span>
-                  )}
-                </div>
-                <div className="sort-options">
-                  <Form.Select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="sort-select"
-                    size="sm"
-                  >
-                    <option value="relevance">Sort by: Relevance</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="name">Name: A to Z</option>
-                  </Form.Select>
-                </div>
-              </div>
+              <ResultsHeader
+                totalResults={pagination.total}
+                currentResults={products.length}
+                loading={loading}
+                sortBy={sortBy}
+                onSortChange={setSortBy}
+              />
 
               {loading ? (
                 <div className="loading-container">
@@ -407,118 +301,14 @@ const ProductListingPage = () => {
               ) : (
                 <>
                   <Row className="products-grid">
-                    {products.map((product) => {
-                      const discount = calculateDiscount(
-                        product.price,
-                        product.compareAtPrice
-                      );
-                      return (
-                        <Col key={product._id} xs={6} sm={6} md={4} lg={3} className="product-col">
-                          <Card className="product-card">
-                            <div className="product-image-wrapper">
-                              {product.images && product.images.length > 0 && (
-                                <div
-                                  className="product-image"
-                                  style={{
-                                    backgroundImage: `url(${getImageUrl(product.images[0])})`,
-                                  }}
-                                  onClick={() => navigate(`/products/${product._id}`)}
-                                />
-                              )}
-                              {product.featured && (
-                                <Badge className="featured-badge">Featured</Badge>
-                              )}
-                              {discount > 0 && (
-                                <Badge className="discount-badge">-{discount}%</Badge>
-                              )}
-                            </div>
-                            <Card.Body className="product-card-body">
-                              <div className="product-category">
-                                {product.category && (
-                                  <span className="category-tag">
-                                    {typeof product.category === 'object' && product.category?.name
-                                      ? product.category.name
-                                      : typeof product.category === 'string'
-                                        ? product.category
-                                        : 'Uncategorized'}
-                                  </span>
-                                )}
-                              </div>
-                              <Card.Title
-                                className="product-title"
-                                onClick={() => navigate(`/products/${product._id}`)}
-                              >
-                                {product.name}
-                              </Card.Title>
-                              {product.description && (
-                                <Card.Text className="product-description">
-                                  {product.description.length > 80
-                                    ? `${product.description.substring(0, 80)}...`
-                                    : product.description}
-                                </Card.Text>
-                              )}
-                              <div className="product-rating">
-                                <div className="stars">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <FiStar
-                                      key={star}
-                                      size={14}
-                                      fill="#ffa500"
-                                      color="#ffa500"
-                                    />
-                                  ))}
-                                </div>
-                                <span className="rating-text">(0)</span>
-                              </div>
-                              <div className="product-price-section">
-                                <div className="price-row">
-                                  <span className="current-price">
-                                    ${product.price?.toFixed(2) || '0.00'}
-                                  </span>
-                                  {product.compareAtPrice &&
-                                    product.compareAtPrice > product.price && (
-                                      <span className="original-price">
-                                        ${product.compareAtPrice.toFixed(2)}
-                                      </span>
-                                    )}
-                                </div>
-                                {discount > 0 && (
-                                  <div className="save-amount">
-                                    You save ${(product.compareAtPrice - product.price).toFixed(2)}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="product-stock">
-                                {product.stock > 0 ? (
-                                  <span className="in-stock">
-                                    {product.stock} in stock
-                                  </span>
-                                ) : (
-                                  <span className="out-of-stock">Out of stock</span>
-                                )}
-                              </div>
-                              <Button
-                                variant="warning"
-                                className="add-to-cart-btn w-100"
-                                disabled={
-                                  addingToCart === product._id || (product.stock ?? 0) === 0
-                                }
-                                onClick={() => handleAddToCart(product._id)}
-                              >
-                                {addingToCart === product._id ? (
-                                  <>
-                                    <Spinner size="sm" className="me-2" />
-                                    Adding...
-                                  </>
-                                ) : (
-                                  'Add to Cart'
-                                )}
-                              </Button>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      );
-                    })}
+                    {products.map((product) => (
+                      <ProductCard
+                        key={product._id}
+                        product={product}
+                        onAddToCart={handleAddToCart}
+                        isAddingToCart={addingToCart === product._id}
+                      />
+                    ))}
                   </Row>
 
                   {/* Pagination */}

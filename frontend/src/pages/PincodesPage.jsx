@@ -178,7 +178,7 @@ const PincodesPage = () => {
             <h2>Pincode Management</h2>
             <p className="text-muted">Manage shipping charges by pincode</p>
           </Col>
-          <Col xs="auto" className="d-flex gap-2">
+          <Col xs="auto" className="d-flex gap-2 align-items-center">
             {pendingNotificationsCount > 0 && (
               <Button
                 variant="warning"
@@ -189,8 +189,13 @@ const PincodesPage = () => {
                 Pending Notifications ({pendingNotificationsCount})
               </Button>
             )}
-            <Button variant="primary" onClick={() => handleOpenModal()}>
-              <FiPlus /> Add Pincode
+            <Button 
+              variant="primary" 
+              onClick={() => handleOpenModal()}
+              className="d-flex align-items-center gap-2"
+            >
+              <FiPlus size={18} />
+              Add Pincode
             </Button>
           </Col>
         </Row>

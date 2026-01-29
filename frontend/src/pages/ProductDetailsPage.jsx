@@ -15,8 +15,10 @@ import {
 import { FiShoppingCart, FiArrowLeft, FiStar, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
+import SEO from '../components/SEO';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 import './ProductDetailsPage.css';
 
@@ -26,6 +28,7 @@ const ProductDetailsPage = () => {
   const { isAuthenticated } = useAuth();
   const cartContext = useCart();
   const { refreshCart } = cartContext;
+  const { formatPrice } = useCurrency();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -161,8 +164,30 @@ const ProductDetailsPage = () => {
     ? (product.compareAtPrice - product.price).toFixed(2)
     : 0;
 
+  // SEO data for product
+  const productTitle = product ? `${product.name} | Buy Online - Soft Chilli` : 'Product Details | Soft Chilli';
+  const productDescription = product 
+    ? `${product.name} - ${product.description || 'Shop online at Soft Chilli'}. ${product.category ? `Category: ${typeof product.category === 'object' ? product.category.name : product.category}. ` : ''}Price: ${formatPrice(product.price || 0)}. Fast delivery, secure shopping.`
+    : 'View product details at Soft Chilli eCommerce portal.';
+  const productKeywords = product
+    ? `${product.name}, ${product.category ? (typeof product.category === 'object' ? product.category.name : product.category) : ''}, online shopping, soft chilli, buy online, ecommerce, ${product.category ? (typeof product.category === 'object' ? product.category.name.toLowerCase() : product.category.toLowerCase()) : 'products'}`
+    : 'product, online shopping, soft chilli, ecommerce';
+  const productImage = product && product.images && product.images.length > 0
+    ? getImageUrl(product.images[0])
+    : '/logo512.png';
+
   return (
     <>
+      {product && (
+        <SEO
+          title={productTitle}
+          description={productDescription}
+          keywords={productKeywords}
+          image={productImage}
+          url={`/products/${product._id}`}
+          type="product"
+        />
+      )}
       <AppNavbar />
       <div className="product-details-page">
         <Container className="product-details-container">
@@ -287,16 +312,16 @@ const ProductDetailsPage = () => {
                 {/* Price Section */}
                 <div className="product-price-section">
                   <div className="price-row">
-                    <span className="current-price">${product.price?.toFixed(2) || '0.00'}</span>
+                    <span className="current-price">{formatPrice(product.price || 0)}</span>
                     {product.compareAtPrice && product.compareAtPrice > product.price && (
-                      <span className="original-price">${product.compareAtPrice.toFixed(2)}</span>
+                      <span className="original-price">{formatPrice(product.compareAtPrice)}</span>
                     )}
                   </div>
                   {discount > 0 && (
                     <>
                       <div className="discount-badge-large">{discount}% OFF</div>
                       <div className="save-amount-text">
-                        You save ${saveAmount}
+                        You save {formatPrice(saveAmount)}
                       </div>
                     </>
                   )}

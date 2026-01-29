@@ -24,6 +24,7 @@ const pincodeRoutes = require('./src/routes/pincode.routes');
 const customerActivityLogRoutes = require('./src/routes/customerActivityLog.routes');
 const errorLogRoutes = require('./src/routes/errorLog.routes');
 const reportRoutes = require('./src/routes/report.routes');
+const currencyRoutes = require('./src/routes/currency.routes');
 const notFound = require('./src/middlewares/notFound');
 const errorHandler = require('./src/middlewares/errorHandler');
 const { apiLimiter } = require('./src/middlewares/security');
@@ -128,6 +129,7 @@ app.use('/api/pincodes', pincodeRoutes);
 app.use('/api/customer-activity-logs', customerActivityLogRoutes);
 app.use('/api/error-logs', errorLogRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/currencies', currencyRoutes);
 
 app.get('/', (req, res) => {
     res.status(200).json({
