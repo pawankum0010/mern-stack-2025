@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Badge, Button, Card, Col, Spinner } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { FiStar } from 'react-icons/fi';

@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert,
@@ -13,7 +13,7 @@ import {
   Spinner,
   Table,
 } from 'react-bootstrap';
-import { FiEdit2, FiTrash2, FiPlus, FiCheck, FiX } from 'react-icons/fi';
+import { FiEdit2, FiTrash2, FiPlus, FiCheck } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -37,7 +37,7 @@ const POPULAR_CURRENCIES = [
 
 const CurrencySettingsPage = () => {
   const { user, isAuthenticated } = useAuth();
-  const { updateCurrency, fetchDefaultCurrency } = useCurrency();
+  const { fetchDefaultCurrency } = useCurrency();
   const navigate = useNavigate();
   const [currencies, setCurrencies] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -55,8 +55,6 @@ const CurrencySettingsPage = () => {
     isActive: true,
   });
   const [submitting, setSubmitting] = useState(false);
-  const overlayRef = useRef(null);
-  const drawerRef = useRef(null);
 
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Col, Container, Row, Spinner, Alert } from 'react-bootstrap';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 
 import AppNavbar from '../components/AppNavbar';
 import ProductCard from '../components/ProductCard';
@@ -16,7 +16,6 @@ const ProductListingPage = () => {
   const { isAuthenticated } = useAuth();
   const cartContext = useCart();
   const { refreshCart } = cartContext;
-  const navigate = useNavigate();
   const location = useLocation();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
