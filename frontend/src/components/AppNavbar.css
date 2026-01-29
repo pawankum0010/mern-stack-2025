@@ -1,10 +1,10 @@
-/* Amazon-style Navbar */
+/* Soft Chilli Brand Navbar */
 
 .amazon-navbar-top {
-  background-color: #131921;
+  background-color: var(--brand-dark);
   color: #ffffff;
   padding: 0;
-  border-bottom: 1px solid #3a4553;
+  border-bottom: 2px solid var(--brand-green);
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -88,16 +88,16 @@
 }
 
 .navbar-search-input:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
-  border-color: #ffc107;
+  box-shadow: 0 0 0 0.2rem var(--focus-shadow);
+  border-color: var(--brand-green);
   outline: none;
 }
 
 .navbar-search-button {
   border-radius: 0 4px 4px 0;
   border: none;
-  background-color: #febd69;
-  color: #131921;
+  background-color: var(--brand-green);
+  color: #ffffff;
   height: 38px;
   padding: 0 1.25rem;
   font-weight: 500;
@@ -108,12 +108,12 @@
 }
 
 .navbar-search-button:hover {
-  background-color: #f3a847;
-  color: #131921;
+  background-color: var(--brand-green-dark);
+  color: #ffffff;
 }
 
 .navbar-search-button:focus {
-  box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+  box-shadow: 0 0 0 0.2rem var(--focus-shadow);
 }
 
 .amazon-main-nav {
@@ -199,8 +199,8 @@
   position: absolute;
   top: 0;
   right: 0;
-  background-color: #f08804;
-  color: #131921;
+  background-color: var(--brand-red);
+  color: #ffffff;
   font-size: 0.7rem;
   font-weight: 600;
   min-width: 18px;
@@ -333,17 +333,17 @@
 
 .account-dropdown .dropdown-item:hover {
   background-color: transparent;
-  color: #c7511f;
+  color: var(--brand-red);
   text-decoration: underline;
 }
 
 .logout-item {
-  color: #c7511f !important;
+  color: var(--brand-red) !important;
   font-weight: 500;
 }
 
 .logout-item:hover {
-  color: #c7511f !important;
+  color: var(--brand-red-dark) !important;
   text-decoration: underline;
 }
 
@@ -405,7 +405,7 @@
 .dark-mode .nav-dropdown-item .dropdown-item:hover,
 .dark-mode .account-dropdown .dropdown-item:hover {
   background-color: #2a2a2a;
-  color: #ffc107;
+  color: var(--brand-green);
 }
 
 .dark-mode .account-name {

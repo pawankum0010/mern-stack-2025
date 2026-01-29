@@ -404,3 +404,260 @@ exports.deleteOrder = asyncHandler(async (req, res) => {
   });
 });
 
+exports.createPosOrder = asyncHandler(async (req, res) => {
+  const requesterRole = req.requesterRole || (typeof req.user.role === 'string' 
+    ? req.user.role.toLowerCase() 
+    : req.user.role?.name?.toLowerCase() || '');
+
+  // Only admin/superadmin can create POS orders
+  if (requesterRole !== 'admin' && requesterRole !== 'superadmin') {
+    return sendError(res, {
+      message: 'You do not have permission to create POS orders',
+      statusCode: 403,
+    });
+  }
+
+  const { 
+    customerEmail, 
+    customerPhone, 
+    customerName,
+    items, 
+    shippingAddress, 
+    billingAddress, 
+    gstNumber, 
+    paymentMethod, 
+    notes, 
+    tax = 0, 
+    shipping 
+  } = req.body;
+
+  // Validate customer contact - email or phone is required
+  if (!customerEmail && !customerPhone) {
+    return sendError(res, {
+      message: 'Customer email or phone number is required',
+      statusCode: 400,
+    });
+  }
+
+  // Validate shipping address
+  if (!shippingAddress || !shippingAddress.line1 || !shippingAddress.city) {
+    return sendError(res, {
+      message: 'Shipping address is required',
+      statusCode: 400,
+    });
+  }
+
+  // Validate items
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return sendError(res, {
+      message: 'Order items are required',
+      statusCode: 400,
+    });
+  }
+
+  // Find or create customer user
+  const User = require('../models/user.model');
+  const Role = require('../models/role.model');
+  let customerUser = null;
+
+  // Search by email first (if provided), then by phone (if provided and email didn't match)
+  if (customerEmail) {
+    customerUser = await User.findOne({ email: customerEmail.toLowerCase() });
+  }
+  
+  // If not found by email and phone is provided, search by phone
+  if (!customerUser && customerPhone) {
+    customerUser = await User.findOne({ phone: customerPhone });
+  }
+
+  // If user doesn't exist, create a customer account
+  if (!customerUser) {
+    // Get customer role
+    let customerRole = await Role.findOne({ name: 'customer' });
+    if (!customerRole) {
+      customerRole = await Role.create({ name: 'customer', description: 'Customer' });
+    }
+
+    // Create minimal user account for POS orders
+    const userData = {
+      name: customerName || (customerEmail ? customerEmail.split('@')[0] : 'Customer'),
+      email: customerEmail || `pos-${Date.now()}@temp.com`,
+      phone: customerPhone || '',
+      role: customerRole._id,
+      pincode: shippingAddress?.postalCode || '000000', // Default pincode if not provided
+      password: Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8), // Random password
+    };
+
+    if (shippingAddress) {
+      userData.address = {
+        line1: shippingAddress.line1,
+        line2: shippingAddress.line2 || '',
+        city: shippingAddress.city,
+        state: shippingAddress.state || '',
+        postalCode: shippingAddress.postalCode || '',
+        country: shippingAddress.country || '',
+      };
+    }
+
+    customerUser = await User.create(userData);
+  }
+
+  // Calculate shipping charge based on shipping address postalCode if not provided
+  let shippingCharge = 0;
+  if (shipping !== undefined && shipping !== null) {
+    shippingCharge = Number(shipping);
+  } else {
+    const Pincode = require('../models/pincode.model');
+    const postalCode = shippingAddress?.postalCode;
+    
+    if (postalCode && postalCode.length === 6) {
+      try {
+        const pincodeData = await Pincode.findOne({ pincode: postalCode, status: 'active' });
+        shippingCharge = pincodeData?.shippingCharge || 0;
+      } catch (error) {
+        shippingCharge = 0;
+      }
+    }
+  }
+
+  // Validate products and build order items
+  const orderItems = [];
+  let subtotal = 0;
+
+  for (const item of items) {
+    const product = await Product.findById(item.product);
+    if (!product || product.status !== 'active') {
+      return sendError(res, {
+        message: `Product ${item.product} is not available`,
+        statusCode: 400,
+      });
+    }
+
+    if (product.stock < item.quantity) {
+      return sendError(res, {
+        message: `Insufficient stock for ${product.name}`,
+        statusCode: 400,
+      });
+    }
+
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+
+    orderItems.push({
+      product: product._id,
+      name: product.name,
+      quantity: item.quantity,
+      price: item.price,
+      total: itemTotal,
+    });
+  }
+
+  const total = subtotal + Number(tax) + Number(shippingCharge);
+
+  // Generate order number
+  const orderCount = await Order.countDocuments();
+  const orderNumber = `ORD-${Date.now()}-${String(orderCount + 1).padStart(6, '0')}`;
+
+  const order = await Order.create({
+    orderNumber,
+    user: customerUser._id,
+    items: orderItems,
+    subtotal,
+    tax: Number(tax),
+    shipping: Number(shippingCharge),
+    total,
+    shippingAddress,
+    billingAddress: billingAddress || shippingAddress,
+    gstNumber,
+    paymentMethod: paymentMethod || 'cash',
+    notes: notes || 'Order placed via POS by admin',
+  });
+
+  // Log order creation
+  const adminUser = await User.findById(req.user.id);
+  await OrderActivityLog.create({
+    order: order._id,
+    action: 'created',
+    performedBy: req.user.id,
+    performedByName: adminUser?.name || adminUser?.email || 'Admin',
+    notes: `POS order created by admin for customer: ${customerUser.email || customerUser.phone}`,
+  });
+
+  // Update product stock
+  for (const item of orderItems) {
+    await Product.findByIdAndUpdate(item.product, {
+      $inc: { stock: -item.quantity },
+    });
+  }
+
+  // Populate order with user and product details
+  await order.populate('user', 'name email phone address');
+  await order.populate('items.product', 'name images description');
+
+  // Get customer details
+  const customer = order.user;
+  
+  // Get product details for email
+  const products = order.items.map(item => item.product).filter(Boolean);
+
+  // Send order notification email to superadmin (non-blocking)
+  console.log('Triggering POS order notification email to superadmin...');
+  sendOrderNotificationEmail(order, customer, products)
+    .then((results) => {
+      if (results) {
+        console.log('POS order notification email to superadmin completed.');
+      } else {
+        console.warn('POS order notification email to superadmin returned null - check logs above for details.');
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Failed to send POS order notification email to superadmin (non-blocking):', {
+        orderNumber: order.orderNumber,
+        error: error.message,
+        stack: error.stack,
+      });
+    });
+
+  // Send order confirmation email to customer (non-blocking)
+  // Send email if customerEmail was provided in the request (not a temp email)
+  // This ensures customers receive order details just like normal orders
+  const hasValidCustomerEmail = customerEmail && 
+                                 customerEmail.includes('@') && 
+                                 !customerEmail.includes('temp.com') &&
+                                 customer.email &&
+                                 customer.email.includes('@') &&
+                                 !customer.email.includes('temp.com');
+  
+  if (hasValidCustomerEmail) {
+    console.log(`Triggering POS order confirmation email to customer: ${customerEmail}...`);
+    sendOrderConfirmationEmail(order, customer, products)
+      .then((result) => {
+        if (result) {
+          console.log(`POS order confirmation email to customer (${customerEmail}) completed.`);
+        } else {
+          console.warn(`POS order confirmation email to customer (${customerEmail}) returned null - check logs above for details.`);
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Failed to send POS order confirmation email to customer (non-blocking):', {
+          orderNumber: order.orderNumber,
+          customerEmail: customerEmail,
+          error: error.message,
+          stack: error.stack,
+        });
+      });
+  } else {
+    if (customerPhone && !customerEmail) {
+      console.log(`Skipping customer email - only phone number provided (${customerPhone}), no email address`);
+    } else {
+      console.log('Skipping customer email - no valid email provided or temp email used');
+    }
+  }
+
+  sendSuccess(res, {
+    data: order,
+    message: 'POS order placed successfully',
+    statusCode: 201,
+  });
+});
+

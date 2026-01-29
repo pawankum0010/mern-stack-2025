@@ -1,0 +1,209 @@
+/* Soft Chilli Brand Colors - Based on Logo */
+:root {
+  /* Primary Brand Colors */
+  --brand-green: #22c55e;        /* Green from logo "S" */
+  --brand-green-dark: #16a34a;   /* Darker green for hover states */
+  --brand-green-light: #4ade80;  /* Lighter green for highlights */
+  
+  --brand-red: #ef4444;          /* Red from logo "C" and chili */
+  --brand-red-dark: #dc2626;     /* Darker red for hover states */
+  --brand-red-light: #f87171;    /* Lighter red for highlights */
+  
+  /* Neutral Colors */
+  --brand-dark: #131921;         /* Dark grey/black for text */
+  --brand-dark-light: #1f2937;   /* Lighter dark for backgrounds */
+  --brand-grey: #6b7280;         /* Medium grey */
+  --brand-grey-light: #9ca3af;   /* Light grey */
+  --brand-white: #ffffff;        /* White background */
+  --brand-off-white: #f5f6fa;    /* Off-white background */
+  
+  /* Semantic Colors */
+  --success-color: var(--brand-green);
+  --danger-color: var(--brand-red);
+  --warning-color: #f59e0b;      /* Amber for warnings */
+  --info-color: #3b82f6;        /* Blue for info */
+  
+  /* Override Bootstrap Colors */
+  --bs-primary: var(--brand-green);
+  --bs-primary-rgb: 34, 197, 94;
+  --bs-secondary: var(--brand-red);
+  --bs-secondary-rgb: 239, 68, 68;
+  --bs-success: var(--brand-green);
+  --bs-success-rgb: 34, 197, 94;
+  --bs-danger: var(--brand-red);
+  --bs-danger-rgb: 239, 68, 68;
+  
+  /* Link Colors */
+  --link-color: var(--brand-green);
+  --link-hover-color: var(--brand-green-dark);
+  
+  /* Focus Colors */
+  --focus-color: var(--brand-green);
+  --focus-shadow: rgba(34, 197, 94, 0.25);
+}
+
+/* Dark Mode Brand Colors */
+[data-theme="dark"] {
+  --brand-dark: #e0e0e0;
+  --brand-dark-light: #1e1e1e;
+  --brand-off-white: #121212;
+  --brand-white: #1e1e1e;
+}
+
+/* Bootstrap Overrides */
+.btn-primary {
+  background-color: var(--brand-green);
+  border-color: var(--brand-green);
+  color: #ffffff;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
+  color: #ffffff;
+}
+
+.btn-primary:active,
+.btn-primary.active {
+  background-color: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
+}
+
+.btn-secondary {
+  background-color: var(--brand-red);
+  border-color: var(--brand-red);
+  color: #ffffff;
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+  background-color: var(--brand-red-dark);
+  border-color: var(--brand-red-dark);
+  color: #ffffff;
+}
+
+.btn-outline-primary {
+  color: var(--brand-green);
+  border-color: var(--brand-green);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--brand-green);
+  border-color: var(--brand-green);
+  color: #ffffff;
+}
+
+.btn-outline-secondary {
+  color: var(--brand-red);
+  border-color: var(--brand-red);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus {
+  background-color: var(--brand-red);
+  border-color: var(--brand-red);
+  color: #ffffff;
+}
+
+.btn-success {
+  background-color: var(--brand-green);
+  border-color: var(--brand-green);
+}
+
+.btn-success:hover,
+.btn-success:focus {
+  background-color: var(--brand-green-dark);
+  border-color: var(--brand-green-dark);
+}
+
+.btn-danger {
+  background-color: var(--brand-red);
+  border-color: var(--brand-red);
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+  background-color: var(--brand-red-dark);
+  border-color: var(--brand-red-dark);
+}
+
+/* Link Colors */
+a {
+  color: var(--brand-green);
+}
+
+a:hover {
+  color: var(--brand-green-dark);
+}
+
+/* Form Focus States */
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--brand-green);
+  box-shadow: 0 0 0 0.2rem var(--focus-shadow);
+}
+
+/* Badge Colors */
+.bg-primary {
+  background-color: var(--brand-green) !important;
+}
+
+.bg-secondary {
+  background-color: var(--brand-red) !important;
+}
+
+.bg-success {
+  background-color: var(--brand-green) !important;
+}
+
+.bg-danger {
+  background-color: var(--brand-red) !important;
+}
+
+/* Alert Colors */
+.alert-primary {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: var(--brand-green);
+  color: var(--brand-green-dark);
+}
+
+.alert-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-color: var(--brand-green);
+  color: var(--brand-green-dark);
+}
+
+.alert-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-color: var(--brand-red);
+  color: var(--brand-red-dark);
+}
+
+/* Text Colors */
+.text-primary {
+  color: var(--brand-green) !important;
+}
+
+.text-secondary {
+  color: var(--brand-red) !important;
+}
+
+.text-success {
+  color: var(--brand-green) !important;
+}
+
+.text-danger {
+  color: var(--brand-red) !important;
+}
+
+/* Border Colors */
+.border-primary {
+  border-color: var(--brand-green) !important;
+}
+
+.border-secondary {
+  border-color: var(--brand-red) !important;
+}
+

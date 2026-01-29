@@ -97,9 +97,48 @@ exports.createUser = asyncHandler(async (req, res) => {
 });
 
 exports.getUsers = asyncHandler(async (req, res) => {
-  const users = await User.find()
+  const { email, phone, search, limit = 20 } = req.query;
+  
+  const query = {};
+  
+  // Support autocomplete/search with partial matching
+  if (search) {
+    // Search in email, phone, or name
+    query.$or = [
+      { email: { $regex: search, $options: 'i' } },
+      { phone: { $regex: search, $options: 'i' } },
+      { name: { $regex: search, $options: 'i' } },
+    ];
+  } else {
+    // Support exact or partial matching for email
+    if (email) {
+      if (email.includes('@')) {
+        // If contains @, try exact match first, then partial
+        query.$or = [
+          { email: email.toLowerCase() },
+          { email: { $regex: email.toLowerCase(), $options: 'i' } },
+        ];
+      } else {
+        // Partial match for email prefix
+        query.email = { $regex: email.toLowerCase(), $options: 'i' };
+      }
+    }
+    
+    // Support exact or partial matching for phone
+    if (phone) {
+      query.$or = [
+        ...(query.$or || []),
+        { phone: phone },
+        { phone: { $regex: phone, $options: 'i' } },
+      ];
+    }
+  }
+  
+  const users = await User.find(query)
     .sort({ createdAt: -1 })
-    .populate('role', 'name');
+    .limit(Number(limit))
+    .populate('role', 'name')
+    .select('name email phone address role');
 
   if (!users.length) {
     return sendNotFound(res, { message: 'No users found' });

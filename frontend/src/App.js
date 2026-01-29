@@ -34,6 +34,7 @@ import SupportRequestsPage from './pages/SupportRequestsPage';
 import ActiveUsersReportPage from './pages/ActiveUsersReportPage';
 import HighestSellingProductsPage from './pages/HighestSellingProductsPage';
 import OrdersStatusReportPage from './pages/OrdersStatusReportPage';
+import PosOrderPage from './pages/PosOrderPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import SupportPage from './pages/SupportPage';
 import AdminRedirect from './components/AdminRedirect';
@@ -75,6 +76,7 @@ function App() {
           <Route path="/admin/reports/highest-selling-products" element={<HighestSellingProductsPage />} />
           <Route path="/admin/reports/orders-status" element={<OrdersStatusReportPage />} />
           <Route path="/admin/orders" element={<OrdersPage />} />
+          <Route path="/admin/pos" element={<PosOrderPage />} />
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />

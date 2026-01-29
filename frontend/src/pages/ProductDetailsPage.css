@@ -388,9 +388,9 @@
 }
 
 .add-to-cart-btn-large {
-  background-color: #ffd814;
+  background-color: var(--brand-green);
   border: none;
-  color: #131921;
+  color: #ffffff;
   font-weight: 500;
   padding: 0.75rem 2rem;
   border-radius: 20px;
@@ -401,8 +401,8 @@
 }
 
 .add-to-cart-btn-large:hover {
-  background-color: #f7ca00;
-  color: #131921;
+  background-color: var(--brand-green-dark);
+  color: #ffffff;
 }
 
 .add-to-cart-btn-large:disabled {
@@ -412,19 +412,20 @@
 }
 
 .buy-now-btn {
-  border: 1px solid #ffc107;
-  color: #131921;
+  border: 2px solid var(--brand-red);
+  color: var(--brand-red);
   font-weight: 500;
   padding: 0.75rem 2rem;
   border-radius: 20px;
   width: 100%;
   font-size: 1rem;
   transition: background-color 0.2s;
+  background-color: transparent;
 }
 
 .buy-now-btn:hover {
-  background-color: #ffc107;
-  color: #131921;
+  background-color: var(--brand-red);
+  color: #ffffff;
 }
 
 .buy-now-btn:disabled {
@@ -543,7 +544,7 @@
 }
 
 .dark-mode .back-to-products-btn:hover {
-  color: #ffc107;
+  color: var(--brand-green);
 }
 
 .dark-mode .product-title {
@@ -559,7 +560,7 @@
 }
 
 .dark-mode .breadcrumb-link:hover {
-  color: #ffc107;
+  color: var(--brand-green);
 }
 
 .dark-mode .main-image-container {
@@ -578,7 +579,7 @@
 
 .dark-mode .thumbnail-item:hover,
 .dark-mode .thumbnail-item.active {
-  border-color: #ffc107;
+  border-color: var(--brand-green);
 }
 
 .dark-mode .product-price-section {
@@ -645,8 +646,9 @@
 
 .dark-mode .quantity-select:focus {
   background-color: #2a2a2a;
-  border-color: #ffc107;
+  border-color: var(--brand-green);
   color: #e0e0e0;
+  box-shadow: 0 0 0 0.2rem var(--focus-shadow);
 }
 
 /* Responsive Design */

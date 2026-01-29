@@ -7,6 +7,7 @@ const {
   updateOrderStatus,
   getOrderActivityLogs,
   deleteOrder,
+  createPosOrder,
 } = require('../controllers/order.controller');
 const authenticate = require('../middlewares/authenticate');
 const { authorizeRoles } = require('../middlewares/authorize');
@@ -17,6 +18,7 @@ const router = express.Router();
 router.use(authenticate);
 
 router.post('/', logActivity('place_order'), createOrder);
+router.post('/pos', authorizeRoles('superadmin', 'admin'), logActivity('place_pos_order'), createPosOrder);
 router.get('/', logActivity('view_orders'), getOrders);
 router.get('/:id', logActivity('view_order'), getOrderById);
 router.get('/:id/activity-logs', getOrderActivityLogs);

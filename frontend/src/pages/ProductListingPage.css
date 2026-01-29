@@ -48,14 +48,14 @@
 
 .clear-filters-btn {
   padding: 0;
-  color: #007185;
+  color: var(--brand-green);
   text-decoration: none;
   font-size: 0.875rem;
   border: none;
 }
 
 .clear-filters-btn:hover {
-  color: #c7511f;
+  color: var(--brand-red);
   text-decoration: underline;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .filter-section-header:hover {
-  color: #007185;
+  color: var(--brand-green);
 }
 
 .filter-section-content {
@@ -356,7 +356,7 @@
 
 .save-amount {
   font-size: 0.75rem;
-  color: #c7511f;
+  color: var(--brand-red);
   font-weight: 500;
 }
 
@@ -366,19 +366,19 @@
 }
 
 .in-stock {
-  color: #007600;
+  color: var(--brand-green);
   font-weight: 500;
 }
 
 .out-of-stock {
-  color: #b12704;
+  color: var(--brand-red);
   font-weight: 500;
 }
 
 .add-to-cart-btn {
-  background-color: #ffd814;
+  background-color: var(--brand-green);
   border: none;
-  color: #131921;
+  color: #ffffff;
   font-weight: 500;
   padding: 0.5rem;
   border-radius: 20px;
@@ -388,8 +388,8 @@
 }
 
 .add-to-cart-btn:hover {
-  background-color: #f7ca00;
-  color: #131921;
+  background-color: var(--brand-green-dark);
+  color: #ffffff;
 }
 
 .add-to-cart-btn:disabled {
@@ -467,7 +467,7 @@
 }
 
 .dark-mode .product-title:hover {
-  color: #ffc107;
+  color: var(--brand-green);
 }
 
 .dark-mode .product-description {

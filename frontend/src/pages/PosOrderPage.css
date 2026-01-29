@@ -1,0 +1,36 @@
+/* Autocomplete Dropdown Styles */
+.autocomplete-dropdown {
+  background-color: #ffffff;
+  border: 1px solid #d5d9d9;
+}
+
+.autocomplete-item {
+  background-color: #ffffff;
+  transition: background-color 0.2s;
+}
+
+.autocomplete-item:hover {
+  background-color: #f0f0f0;
+}
+
+/* Dark Mode Support */
+.dark-mode .autocomplete-dropdown {
+  background-color: #1e1e1e;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .autocomplete-item {
+  background-color: #1e1e1e;
+  border-color: #444;
+  color: #e0e0e0;
+}
+
+.dark-mode .autocomplete-item:hover {
+  background-color: #2a2a2a;
+}
+
+.dark-mode .autocomplete-item .text-muted {
+  color: #aaa !important;
+}
+
