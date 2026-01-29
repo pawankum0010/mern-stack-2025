@@ -10,7 +10,7 @@ import {
   Row,
   Spinner,
 } from 'react-bootstrap';
-import { FiSave, FiMail, FiPhone, FiMapPin, FiClock, FiMessageSquare } from 'react-icons/fi';
+import { FiSave, FiMail, FiPhone, FiMapPin, FiClock } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
