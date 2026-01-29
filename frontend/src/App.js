@@ -24,8 +24,10 @@ import UsersPage from './pages/UsersPage';
 import StatesPage from './pages/StatesPage';
 import WeightUnitsPage from './pages/WeightUnitsPage';
 import SizesPage from './pages/SizesPage';
+import BrandsPage from './pages/BrandsPage';
 import PincodesPage from './pages/PincodesPage';
 import CurrencySettingsPage from './pages/CurrencySettingsPage';
+import ContactSettingsPage from './pages/ContactSettingsPage';
 import CustomerActivityLogsPage from './pages/CustomerActivityLogsPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
 import ActiveUsersReportPage from './pages/ActiveUsersReportPage';
@@ -61,8 +63,10 @@ function App() {
           <Route path="/admin/states" element={<StatesPage />} />
           <Route path="/admin/weight-units" element={<WeightUnitsPage />} />
           <Route path="/admin/sizes" element={<SizesPage />} />
+          <Route path="/admin/brands" element={<BrandsPage />} />
           <Route path="/admin/pincodes" element={<PincodesPage />} />
           <Route path="/admin/currencies" element={<CurrencySettingsPage />} />
+          <Route path="/admin/contact-settings" element={<ContactSettingsPage />} />
           <Route path="/admin/customer-activity-logs" element={<CustomerActivityLogsPage />} />
           <Route path="/admin/error-logs" element={<ErrorLogsPage />} />
           <Route path="/admin/reports/active-users" element={<ActiveUsersReportPage />} />

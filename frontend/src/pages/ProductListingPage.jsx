@@ -306,8 +306,8 @@ const ProductListingPage = () => {
                         product={product}
                         onAddToCart={handleAddToCart}
                         isAddingToCart={addingToCart === product._id}
-                      />
-                    ))}
+                                    />
+                                  ))}
                   </Row>
 
                   {/* Pagination */}

@@ -1,9 +1,10 @@
-import { useState } from 'react';
-import { Container, Card, Form, Button, Alert, Row, Col } from 'react-bootstrap';
-import { FiMail, FiPhone, FiMapPin, FiSend, FiCheckCircle } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import { Container, Card, Form, Button, Alert, Row, Col, Spinner } from 'react-bootstrap';
+import { FiMail, FiPhone, FiMapPin, FiSend, FiCheckCircle, FiClock } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import SEO from '../components/SEO';
+import api from '../api/client';
 
 const SupportPage = () => {
   const [formData, setFormData] = useState({
@@ -15,10 +16,47 @@ const SupportPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [contactInfo, setContactInfo] = useState({
+    contactEmail: 'infosoftchilli@gmail.com',
+    contactPhone: '+91 9140100018',
+    officeAddress: '2/148 Vinamra Khand',
+    officeCity: 'Gomti Nagar',
+    officeState: 'Uttar Pradesh',
+    officePostalCode: '226010',
+    officeCountry: 'India',
+    businessHours: '',
+    supportMessage: "We're here to help! Get in touch with our support team for any questions, concerns, or assistance you may need.",
+  });
 
-  const supportEmail = 'infosoftchilli@gmail.com';
-  const supportPhone = '+91 9140100018';
-  const supportAddress = '2/148 Vinamra Khand, Gomti Nagar, Lucknow - 226010';
+  useEffect(() => {
+    fetchContactInfo();
+  }, []);
+
+  const fetchContactInfo = async () => {
+    try {
+      const { data } = await api.get('/site-settings/contact');
+      if (data?.success && data?.data) {
+        setContactInfo(data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching contact info:', error);
+      // Keep default values if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getFullAddress = () => {
+    const parts = [
+      contactInfo.officeAddress,
+      contactInfo.officeCity,
+      contactInfo.officeState,
+      contactInfo.officePostalCode ? `- ${contactInfo.officePostalCode}` : '',
+      contactInfo.officeCountry,
+    ].filter(Boolean);
+    return parts.join(', ');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -28,36 +66,64 @@ const SupportPage = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
+    setSubmitted(false);
 
-    // Create mailto link
-    const subject = encodeURIComponent(formData.subject || 'Support Request');
-    const body = encodeURIComponent(
-      `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
-    );
-    const mailtoLink = `mailto:${supportEmail}?subject=${subject}&body=${body}`;
-
-    // Open email client
-    window.location.href = mailtoLink;
-
-    // Simulate submission (since we're using mailto)
-    setTimeout(() => {
-      setSubmitting(false);
-      setSubmitted(true);
-      setFormData({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
+    try {
+      const response = await api.post('/site-settings/support', {
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject || 'Support Request',
+        message: formData.message,
       });
-      
-      // Reset submitted state after 5 seconds
-      setTimeout(() => setSubmitted(false), 5000);
-    }, 1000);
+
+      if (response.data.success) {
+        setSubmitted(true);
+        setFormData({
+          name: '',
+          email: '',
+          subject: '',
+          message: '',
+        });
+        
+        // Reset submitted state after 5 seconds
+        setTimeout(() => setSubmitted(false), 5000);
+      } else {
+        setError(response.data.message || 'Failed to submit support request. Please try again.');
+      }
+    } catch (err) {
+      console.error('Error submitting support request:', err);
+      setError(
+        err.response?.data?.message || 
+        'Failed to submit support request. Please try again later.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <>
+        <SEO
+          title="Customer Support"
+          description="Get help and support from Soft Chilli customer service. Contact us via email, phone, or fill out our support form. We're here to assist you with your shopping needs."
+          keywords="customer support, help, contact, soft chilli support, customer service, ecommerce support"
+          url="https://erp.softchilli.com/support"
+        />
+        <AppNavbar />
+        <Container className="py-5">
+          <div className="text-center">
+            <Spinner animation="border" role="status" />
+            <p className="mt-3 text-muted">Loading support information...</p>
+          </div>
+        </Container>
+      </>
+    );
+  }
 
   return (
     <>
@@ -73,8 +139,7 @@ const SupportPage = () => {
           <Col xs={12}>
             <h1 className="mb-4">Customer Support</h1>
             <p className="lead text-muted mb-5">
-              We're here to help! Get in touch with our support team for any questions, 
-              concerns, or assistance you may need.
+              {contactInfo.supportMessage || "We're here to help! Get in touch with our support team for any questions, concerns, or assistance you may need."}
             </p>
           </Col>
         </Row>
@@ -92,10 +157,10 @@ const SupportPage = () => {
                   Send us an email and we'll get back to you within 24 hours.
                 </Card.Text>
                 <a 
-                  href={`mailto:${supportEmail}`}
+                  href={`mailto:${contactInfo.contactEmail}`}
                   className="text-decoration-none"
                 >
-                  {supportEmail}
+                  {contactInfo.contactEmail}
                 </a>
               </Card.Body>
             </Card>
@@ -112,10 +177,10 @@ const SupportPage = () => {
                   Call us during business hours for immediate assistance.
                 </Card.Text>
                 <a 
-                  href={`tel:${supportPhone.replace(/\s/g, '')}`}
+                  href={`tel:${contactInfo.contactPhone.replace(/\s/g, '')}`}
                   className="text-decoration-none"
                 >
-                  {supportPhone}
+                  {contactInfo.contactPhone}
                 </a>
               </Card.Body>
             </Card>
@@ -132,8 +197,14 @@ const SupportPage = () => {
                   Visit us at our office location.
                 </Card.Text>
                 <Card.Text className="small">
-                  {supportAddress}
+                  {getFullAddress()}
                 </Card.Text>
+                {contactInfo.businessHours && (
+                  <Card.Text className="small text-muted mt-2">
+                    <FiClock className="me-1" size={14} />
+                    {contactInfo.businessHours}
+                  </Card.Text>
+                )}
               </Card.Body>
             </Card>
           </Col>
@@ -297,4 +368,5 @@ const SupportPage = () => {
 };
 
 export default SupportPage;
+
 

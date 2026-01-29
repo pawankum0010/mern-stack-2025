@@ -109,8 +109,11 @@ const AppNavbar = () => {
                   <NavDropdown.Item onClick={() => navigate('/admin/states')}>States</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/weight-units')}>Weight Units</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/sizes')}>Sizes</NavDropdown.Item>
+                  <NavDropdown.Item onClick={() => navigate('/admin/brands')}>Brands</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/pincodes')}>Pincodes</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => navigate('/admin/currencies')}>Currencies</NavDropdown.Item>
+                  <NavDropdown.Divider />
+                  <NavDropdown.Item onClick={() => navigate('/admin/contact-settings')}>Contact Settings</NavDropdown.Item>
                 </NavDropdown>
                 <NavDropdown title="Reports" id="reports-dropdown" className="nav-dropdown-item">
                   <NavDropdown.Item onClick={() => navigate('/admin/reports/active-users')}>Active Users</NavDropdown.Item>

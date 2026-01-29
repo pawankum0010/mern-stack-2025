@@ -83,8 +83,9 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
     brand: {
-      type: String,
-      trim: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Brand',
+      index: true,
     },
     color: {
       type: String,

@@ -20,11 +20,13 @@ const addressRoutes = require('./src/routes/address.routes');
 const stateRoutes = require('./src/routes/state.routes');
 const weightUnitRoutes = require('./src/routes/weightUnit.routes');
 const sizeRoutes = require('./src/routes/size.routes');
+const brandRoutes = require('./src/routes/brand.routes');
 const pincodeRoutes = require('./src/routes/pincode.routes');
 const customerActivityLogRoutes = require('./src/routes/customerActivityLog.routes');
 const errorLogRoutes = require('./src/routes/errorLog.routes');
 const reportRoutes = require('./src/routes/report.routes');
 const currencyRoutes = require('./src/routes/currency.routes');
+const siteSettingsRoutes = require('./src/routes/siteSettings.routes');
 const notFound = require('./src/middlewares/notFound');
 const errorHandler = require('./src/middlewares/errorHandler');
 const { apiLimiter } = require('./src/middlewares/security');
@@ -125,11 +127,13 @@ app.use('/api/addresses', addressRoutes);
 app.use('/api/states', stateRoutes);
 app.use('/api/weight-units', weightUnitRoutes);
 app.use('/api/sizes', sizeRoutes);
+app.use('/api/brands', brandRoutes);
 app.use('/api/pincodes', pincodeRoutes);
 app.use('/api/customer-activity-logs', customerActivityLogRoutes);
 app.use('/api/error-logs', errorLogRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/currencies', currencyRoutes);
+app.use('/api/site-settings', siteSettingsRoutes);
 
 app.get('/', (req, res) => {
     res.status(200).json({

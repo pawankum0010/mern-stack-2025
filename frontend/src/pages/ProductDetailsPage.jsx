@@ -380,7 +380,9 @@ const ProductDetailsPage = () => {
                   {product.brand && (
                     <div className="feature-item">
                       <span className="feature-label">Brand:</span>
-                      <span className="feature-value">{product.brand}</span>
+                      <span className="feature-value">
+                        {typeof product.brand === 'object' ? product.brand.name : product.brand}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -525,7 +527,9 @@ const ProductDetailsPage = () => {
                       {product.brand && (
                         <tr>
                           <td className="detail-label">Brand</td>
-                          <td className="detail-value">{product.brand}</td>
+                          <td className="detail-value">
+                            {typeof product.brand === 'object' ? product.brand.name : product.brand}
+                          </td>
                         </tr>
                       )}
                       {product.material && (

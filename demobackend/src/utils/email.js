@@ -1183,11 +1183,331 @@ const sendWelcomeEmail = async (customer) => {
   }
 };
 
+// Send support request email to superadmin
+const sendSupportRequestEmail = async (supportData) => {
+  console.log('=== Support Request Email - Starting ===');
+  console.log('Attempting to send support request email:', {
+    customerName: supportData?.name,
+    customerEmail: supportData?.email,
+    subject: supportData?.subject,
+    timestamp: new Date().toISOString(),
+  });
+
+  try {
+    // Validate input data
+    if (!supportData || !supportData.name || !supportData.email || !supportData.message) {
+      console.error('❌ Invalid support data. Cannot send support request email.');
+      return null;
+    }
+
+    // Verify SMTP configuration first
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+      console.error('❌ SMTP configuration missing. Cannot send support request email.');
+      console.error('Required environment variables: SMTP_USER, SMTP_PASS');
+      return null;
+    }
+
+    console.log('✅ Input validation passed.');
+
+    console.log('SMTP configuration verified. Creating transporter...');
+    const transporter = createTransporter();
+
+    // Find superadmin role and get superadmin users
+    const Role = require('../models/role.model');
+    const User = require('../models/user.model');
+    
+    console.log('Looking for superadmin role...');
+    // Try case-insensitive search for superadmin role
+    let superadminRole = await Role.findOne({ name: 'superadmin' });
+    if (!superadminRole) {
+      // Try case-insensitive search
+      superadminRole = await Role.findOne({ 
+        name: { $regex: /^superadmin$/i } 
+      });
+    }
+    if (!superadminRole) {
+      console.error('❌ Superadmin role not found. Skipping support request email.');
+      try {
+        const allRoles = await Role.find({}).select('name').lean();
+        console.error('Available roles in database:', allRoles.map(r => r.name));
+      } catch (roleError) {
+        console.error('Could not fetch roles:', roleError.message);
+      }
+      return null;
+    }
+    console.log('✅ Superadmin role found:', {
+      id: superadminRole._id.toString(),
+      name: superadminRole.name,
+    });
+
+    console.log('Looking for superadmin users...');
+    // Find users with superadmin role (try both ObjectId and string matching)
+    let superadmins = await User.find({ role: superadminRole._id }).select('email name role');
+    
+    // If no users found, try alternative query
+    if (!superadmins || superadmins.length === 0) {
+      console.log('Trying alternative query to find superadmin users...');
+      try {
+        // Try finding users and then filtering by populated role
+        const allUsers = await User.find({}).select('email name role').populate('role', 'name');
+        superadmins = allUsers.filter(user => {
+          const roleName = typeof user.role === 'object' && user.role?.name 
+            ? user.role.name.toLowerCase() 
+            : '';
+          return roleName === 'superadmin';
+        });
+      } catch (queryError) {
+        console.error('Error in alternative query:', queryError.message);
+      }
+    }
+    
+    if (!superadmins || superadmins.length === 0) {
+      console.error('❌ No superadmin users found. Skipping support request email.');
+      console.error('To fix: Create a user with superadmin role in the database.');
+      try {
+        const totalUsers = await User.countDocuments({});
+        console.error('Total users in database:', totalUsers);
+      } catch (countError) {
+        console.error('Could not count users:', countError.message);
+      }
+      return null;
+    }
+    
+    // Filter out users without email
+    superadmins = superadmins.filter(s => s.email);
+    
+    if (superadmins.length === 0) {
+      console.error('❌ No superadmin users with email addresses found.');
+      return null;
+    }
+    
+    console.log(`✅ Found ${superadmins.length} superadmin user(s) with email:`, 
+      superadmins.map(s => ({ email: s.email, name: s.name, id: s._id.toString() }))
+    );
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+          }
+          .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+          }
+          .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+          }
+          .content {
+            background-color: #f9f9f9;
+            padding: 30px;
+            border-radius: 0 0 5px 5px;
+          }
+          .info-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #007bff;
+          }
+          .message-box {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border: 1px solid #dee2e6;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background-color: white;
+          }
+          td {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+          }
+          td:first-child {
+            font-weight: bold;
+            width: 150px;
+            color: #666;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h2>New Support Request</h2>
+          </div>
+          <div class="content">
+            <p>Hello,</p>
+            <p>A new support request has been submitted through the website contact form.</p>
+            
+            <div class="info-box">
+              <h3 style="margin-top: 0; color: #007bff;">Customer Information</h3>
+              <table>
+                <tr>
+                  <td>Name:</td>
+                  <td>${supportData.name}</td>
+                </tr>
+                <tr>
+                  <td>Email:</td>
+                  <td><a href="mailto:${supportData.email}">${supportData.email}</a></td>
+                </tr>
+                <tr>
+                  <td>Subject:</td>
+                  <td><strong>${supportData.subject || 'No Subject'}</strong></td>
+                </tr>
+                <tr>
+                  <td>Submitted:</td>
+                  <td>${new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</td>
+                </tr>
+              </table>
+            </div>
+
+            <div class="message-box">
+              <h3 style="margin-top: 0; color: #007bff;">Message</h3>
+              <p style="white-space: pre-wrap; line-height: 1.8;">${supportData.message}</p>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background-color: #e7f3ff; border-radius: 5px; border-left: 4px solid #007bff;">
+              <p style="margin: 0; color: #004085;">
+                <strong>Action Required:</strong> Please respond to this support request as soon as possible.
+                You can reply directly to: <a href="mailto:${supportData.email}">${supportData.email}</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Send email to all superadmins
+    console.log('Preparing email content...');
+    const emailPromises = superadmins.map(async (superadmin) => {
+      if (!superadmin.email) {
+        console.warn(`⚠️ Superadmin ${superadmin.name || superadmin._id} has no email address. Skipping.`);
+        return null;
+      }
+
+      console.log(`Preparing email for superadmin: ${superadmin.email}`);
+      const mailOptions = {
+        from: `"${process.env.SMTP_FROM_NAME || 'Soft Chilli'}" <${process.env.SMTP_USER}>`,
+        to: superadmin.email,
+        replyTo: supportData.email, // Allow replying directly to customer
+        subject: `Support Request: ${supportData.subject || 'No Subject'}`,
+        html: htmlContent,
+        text: `
+          New Support Request
+          
+          A new support request has been submitted through the website contact form.
+          
+          Customer Information:
+          Name: ${supportData.name}
+          Email: ${supportData.email}
+          Subject: ${supportData.subject || 'No Subject'}
+          Submitted: ${new Date().toLocaleString('en-IN')}
+          
+          Message:
+          ${supportData.message}
+          
+          Please respond to this support request as soon as possible.
+          Reply to: ${supportData.email}
+        `,
+      };
+
+      console.log(`Sending email to ${superadmin.email}...`);
+      try {
+        const result = await transporter.sendMail(mailOptions);
+        console.log(`✅ Email sent successfully to ${superadmin.email}:`, {
+          messageId: result.messageId,
+          response: result.response,
+          accepted: result.accepted,
+          rejected: result.rejected,
+        });
+        return result;
+      } catch (emailError) {
+        console.error(`❌ Failed to send email to ${superadmin.email}:`, {
+          message: emailError.message,
+          code: emailError.code,
+          response: emailError.response,
+          command: emailError.command,
+          responseCode: emailError.responseCode,
+          stack: emailError.stack,
+        });
+        throw emailError; // Re-throw to be caught by Promise.allSettled
+      }
+    });
+
+    console.log('Sending emails to all superadmins...');
+    const results = await Promise.allSettled(emailPromises.filter(p => p !== null));
+    
+    const successful = results.filter(r => r.status === 'fulfilled').length;
+    const failed = results.filter(r => r.status === 'rejected').length;
+
+    console.log('=== Support Request Email - Summary ===');
+    console.log('Support request emails sent:', {
+      total: superadmins.length,
+      successful,
+      failed,
+      customerEmail: supportData.email,
+    });
+
+    if (failed > 0) {
+      console.error('❌ Some support request emails failed to send:', {
+        failedCount: failed,
+        errors: results
+          .filter(r => r.status === 'rejected')
+          .map((r, index) => ({
+            superadmin: superadmins[index]?.email || 'Unknown',
+            error: r.reason?.message || 'Unknown error',
+            code: r.reason?.code,
+            response: r.reason?.response,
+          })),
+      });
+    }
+
+    if (successful > 0) {
+      console.log('✅ Support request emails sent successfully!');
+    }
+
+    return results;
+  } catch (error) {
+    console.error('❌ Error sending support request email:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack,
+      customerEmail: supportData?.email,
+      errorDetails: {
+        name: error.name,
+        response: error.response,
+        command: error.command,
+        responseCode: error.responseCode,
+      },
+    });
+    // Don't throw error - support form submission should not fail if email fails
+    return null;
+  } finally {
+    console.log('=== Support Request Email - Completed ===');
+  }
+};
+
 module.exports = {
   sendPasswordResetEmail,
   sendOrderNotificationEmail,
   sendOrderConfirmationEmail,
   sendWelcomeEmail,
+  sendSupportRequestEmail,
   createTransporter,
 };
 

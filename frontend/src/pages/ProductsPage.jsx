@@ -60,6 +60,7 @@ const ProductsPage = () => {
   const [categories, setCategories] = useState([]);
   const [weightUnits, setWeightUnits] = useState([]);
   const [sizes, setSizes] = useState([]);
+  const [brands, setBrands] = useState([]);
 
   // ui state
   const [formState, setFormState] = useState(initialFormState);
@@ -133,8 +134,17 @@ const ProductsPage = () => {
     }
   };
 
+  const fetchBrands = async () => {
+    try {
+      const { data } = await api.get('/brands', { params: { status: 'active' } });
+      setBrands(data?.data || []);
+    } catch (error) {
+      console.error('Failed to fetch brands:', error);
+    }
+  };
+
   useEffect(() => {
-    Promise.all([fetchVendors(), fetchCategories(), fetchWeightUnits(), fetchSizes()]);
+    Promise.all([fetchVendors(), fetchCategories(), fetchWeightUnits(), fetchSizes(), fetchBrands()]);
   }, []);
 
   useEffect(() => {
@@ -356,7 +366,7 @@ const ProductsPage = () => {
       weight: product.weight || '',
       weightUnit: product.weightUnit?._id || product.weightUnit || '',
       vendor: product.vendor?._id || product.vendor || '',
-      brand: product.brand || '',
+      brand: product.brand?._id || product.brand || '',
       color: product.color || '',
       size: product.size?._id || product.size || '',
       material: product.material || '',
@@ -820,13 +830,19 @@ const ProductsPage = () => {
             <Col sm={12} md={6}>
               <Form.Group controlId="brand">
                 <Form.Label>Brand</Form.Label>
-                <Form.Control
+                <Form.Select
                   name="brand"
                   value={formState.brand}
                   onChange={handleChange}
-                  placeholder="Brand name"
                   disabled={!canManageProducts}
-                />
+                >
+                  <option value="">Select Brand</option>
+                  {brands.map((brand) => (
+                    <option key={brand._id} value={brand._id}>
+                      {brand.name}
+                    </option>
+                  ))}
+                </Form.Select>
               </Form.Group>
             </Col>
             <Col sm={12} md={6}>

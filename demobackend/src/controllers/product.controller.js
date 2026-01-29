@@ -129,6 +129,7 @@ exports.createProduct = asyncHandler(async (req, res) => {
   await product.populate('vendor', 'name');
   await product.populate('weightUnit', 'name code symbol');
   await product.populate('size', 'name code');
+  await product.populate('brand', 'name');
 
   sendSuccess(res, {
     data: product,
@@ -219,12 +220,14 @@ exports.getProducts = asyncHandler(async (req, res) => {
   const Vendor = require('../models/vendor.model');
   const WeightUnit = require('../models/weightUnit.model');
   const Size = require('../models/size.model');
+  const Brand = require('../models/brand.model');
   
   // Collect unique IDs
   const categoryIds = new Set();
   const vendorIds = new Set();
   const weightUnitIds = new Set();
   const sizeIds = new Set();
+  const brandIds = new Set();
   
   products.forEach((product) => {
     if (product.category && mongoose.Types.ObjectId.isValid(product.category)) {
@@ -239,10 +242,13 @@ exports.getProducts = asyncHandler(async (req, res) => {
     if (product.size && mongoose.Types.ObjectId.isValid(product.size)) {
       sizeIds.add(product.size.toString());
     }
+    if (product.brand && mongoose.Types.ObjectId.isValid(product.brand)) {
+      brandIds.add(product.brand.toString());
+    }
   });
   
   // Fetch all related data in parallel
-  const [categories, vendors, weightUnits, sizes] = await Promise.all([
+  const [categories, vendors, weightUnits, sizes, brands] = await Promise.all([
     categoryIds.size > 0
       ? Category.find({ _id: { $in: Array.from(categoryIds) } }).select('name').lean()
       : [],
@@ -255,6 +261,9 @@ exports.getProducts = asyncHandler(async (req, res) => {
     sizeIds.size > 0
       ? Size.find({ _id: { $in: Array.from(sizeIds) } }).select('name code').lean()
       : [],
+    brandIds.size > 0
+      ? Brand.find({ _id: { $in: Array.from(brandIds) } }).select('name').lean()
+      : [],
   ]);
   
   // Create lookup maps
@@ -262,6 +271,7 @@ exports.getProducts = asyncHandler(async (req, res) => {
   const vendorMap = new Map(vendors.map((ven) => [ven._id.toString(), ven]));
   const weightUnitMap = new Map(weightUnits.map((wu) => [wu._id.toString(), wu]));
   const sizeMap = new Map(sizes.map((s) => [s._id.toString(), s]));
+  const brandMap = new Map(brands.map((b) => [b._id.toString(), b]));
   
   // Populate products
   products.forEach((product) => {
@@ -287,6 +297,12 @@ exports.getProducts = asyncHandler(async (req, res) => {
       const size = sizeMap.get(product.size.toString());
       if (size) {
         product.size = size;
+      }
+    }
+    if (product.brand && mongoose.Types.ObjectId.isValid(product.brand)) {
+      const brand = brandMap.get(product.brand.toString());
+      if (brand) {
+        product.brand = brand;
       }
     }
   });
@@ -320,7 +336,8 @@ exports.getProductById = asyncHandler(async (req, res) => {
     .populate('category', 'name')
     .populate('vendor', 'name')
     .populate('weightUnit', 'name code symbol')
-    .populate('size', 'name code');
+    .populate('size', 'name code')
+    .populate('brand', 'name');
 
   if (!product) {
     return sendNotFound(res, { message: 'Product not found' });
@@ -448,6 +465,23 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     updates.featured = updates.featured === true || updates.featured === 'true';
   }
 
+  // Handle ObjectId fields - convert empty strings to null/undefined
+  if (updates.category === '' || updates.category === null) {
+    updates.category = null;
+  }
+  if (updates.vendor === '' || updates.vendor === null) {
+    updates.vendor = null;
+  }
+  if (updates.brand === '' || updates.brand === null) {
+    updates.brand = null;
+  }
+  if (updates.size === '' || updates.size === null) {
+    updates.size = null;
+  }
+  if (updates.weightUnit === '' || updates.weightUnit === null) {
+    updates.weightUnit = null;
+  }
+
   // Remove replaceImages from updates (it's just a flag)
   delete updates.replaceImages;
 
@@ -458,7 +492,8 @@ exports.updateProduct = asyncHandler(async (req, res) => {
     .populate('category', 'name')
     .populate('vendor', 'name')
     .populate('weightUnit', 'name code symbol')
-    .populate('size', 'name code');
+    .populate('size', 'name code')
+    .populate('brand', 'name');
 
   if (!product) {
     return sendNotFound(res, { message: 'Product not found' });
