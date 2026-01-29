@@ -18,7 +18,6 @@ import { FiPlus, FiMinus, FiTrash2, FiSearch } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
-import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 import './PosOrderPage.css';
