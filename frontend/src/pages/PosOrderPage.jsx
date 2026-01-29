@@ -14,7 +14,7 @@ import {
   InputGroup,
   Modal,
 } from 'react-bootstrap';
-import { FiPlus, FiMinus, FiTrash2, FiSearch, FiCheck } from 'react-icons/fi';
+import { FiPlus, FiMinus, FiTrash2, FiSearch } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
@@ -24,7 +24,6 @@ import api from '../api/client';
 import './PosOrderPage.css';
 
 const PosOrderPage = () => {
-  const { user } = useAuth();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   
@@ -47,7 +46,6 @@ const PosOrderPage = () => {
   const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loadingProducts, setLoadingProducts] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState([]);
 
   // Cart items
   const [cartItems, setCartItems] = useState([]);
