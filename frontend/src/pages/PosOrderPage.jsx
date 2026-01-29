@@ -80,6 +80,7 @@ const PosOrderPage = () => {
   const [success, setSuccess] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdOrder, setCreatedOrder] = useState(null);
+  const [phoneError, setPhoneError] = useState(null);
 
   // Fetch products
   const fetchProducts = useCallback(async () => {
@@ -184,6 +185,21 @@ const PosOrderPage = () => {
     return () => clearTimeout(timer);
   }, [customerEmail, searchEmailAutocomplete]);
 
+  // Validate phone number (10 digits)
+  const validatePhone = (phone) => {
+    if (!phone) {
+      setPhoneError(null);
+      return true; // Empty is OK, validation happens on submit/search
+    }
+    const phoneRegex = /^\d{10}$/;
+    if (!phoneRegex.test(phone)) {
+      setPhoneError('Phone number must be exactly 10 digits');
+      return false;
+    }
+    setPhoneError(null);
+    return true;
+  };
+
   // Debounced phone autocomplete
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -202,7 +218,13 @@ const PosOrderPage = () => {
   const selectCustomer = (selectedUser) => {
     setCustomerInfo(selectedUser);
     setCustomerEmail(selectedUser.email || '');
-    setCustomerPhone(selectedUser.phone || '');
+    const phone = selectedUser.phone || '';
+    setCustomerPhone(phone);
+    if (phone) {
+      validatePhone(phone);
+    } else {
+      setPhoneError(null);
+    }
     setCustomerName(selectedUser.name || '');
     setEmailSuggestions([]);
     setPhoneSuggestions([]);
@@ -230,6 +252,12 @@ const PosOrderPage = () => {
   const searchCustomer = async () => {
     if (!customerEmail && !customerPhone) {
       setError('Please enter customer email or phone number');
+      return;
+    }
+
+    // Validate phone number if provided
+    if (customerPhone && !validatePhone(customerPhone)) {
+      setError('Please enter a valid 10-digit phone number');
       return;
     }
 
@@ -425,6 +453,12 @@ const PosOrderPage = () => {
       return;
     }
 
+    // Validate phone number if provided
+    if (customerPhone && !validatePhone(customerPhone)) {
+      setError('Please enter a valid 10-digit phone number');
+      return;
+    }
+
     if (cartItems.length === 0) {
       setError('Please add at least one product to the order');
       return;
@@ -593,10 +627,18 @@ const PosOrderPage = () => {
                         placeholder="Type phone or name (e.g., 801008)"
                         value={customerPhone}
                         onChange={(e) => {
-                          setCustomerPhone(e.target.value);
+                          const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                          setCustomerPhone(value);
                           setShowPhoneSuggestions(true);
+                          if (value) {
+                            validatePhone(value);
+                          } else {
+                            setPhoneError(null);
+                          }
                         }}
                         onKeyDown={handlePhoneKeyDown}
+                        isInvalid={!!phoneError}
+                        maxLength={10}
                         onFocus={() => {
                           if (phoneSuggestions.length > 0) {
                             setShowPhoneSuggestions(true);
@@ -644,7 +686,14 @@ const PosOrderPage = () => {
                         ))}
                       </div>
                     )}
-                    <Form.Text className="text-muted">Press Enter to search or select from suggestions</Form.Text>
+                    {phoneError && (
+                      <Form.Text className="text-danger d-block mt-1">
+                        {phoneError}
+                      </Form.Text>
+                    )}
+                    {!phoneError && (
+                      <Form.Text className="text-muted">Press Enter to search or select from suggestions</Form.Text>
+                    )}
                   </Form.Group>
                 </Col>
                 <Col md={4}>
@@ -1038,7 +1087,7 @@ const PosOrderPage = () => {
 
           {/* Order Summary */}
           <Col xs={12} lg={4}>
-            <Card className="sticky-top" style={{ top: '20px' }}>
+            <Card className="sticky-top" style={{ top: '80px', maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
               <Card.Header>
                 <Card.Title className="mb-0">Order Summary</Card.Title>
               </Card.Header>

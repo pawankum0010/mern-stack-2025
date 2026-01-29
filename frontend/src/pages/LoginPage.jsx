@@ -4,6 +4,7 @@ import { useNavigate, Navigate, Link, useLocation } from 'react-router-dom';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 import { useAuth } from '../context/AuthContext';
+import AppNavbar from '../components/AppNavbar';
 
 const LoginPage = () => {
   const { login, isAuthenticated, authError, loading } = useAuth();
@@ -47,10 +48,12 @@ const LoginPage = () => {
   };
 
   return (
-    <Container fluid className="bg-light min-vh-100 d-flex align-items-center">
-      <Row className="justify-content-center w-100">
-        <Col xs={11} sm={8} md={6} lg={4}>
-          <Card className="shadow-sm">
+    <>
+      <AppNavbar />
+      <Container fluid className="bg-light" style={{ minHeight: 'calc(100vh - 60px)', display: 'flex', alignItems: 'center', paddingTop: '1rem', paddingBottom: '1rem' }}>
+        <Row className="justify-content-center w-100">
+          <Col xs={11} sm={8} md={6} lg={4}>
+            <Card className="shadow-sm">
             <Card.Body>
               <h3 className="mb-3 text-center">Login</h3>
               <p className="text-muted text-center mb-4">
@@ -115,6 +118,7 @@ const LoginPage = () => {
         </Col>
       </Row>
     </Container>
+    </>
   );
 };
 

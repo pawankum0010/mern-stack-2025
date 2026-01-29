@@ -5,6 +5,7 @@ import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
+import AppNavbar from '../components/AppNavbar';
 
 const SignupPage = () => {
   const { login, isAuthenticated } = useAuth();
@@ -129,10 +130,12 @@ const SignupPage = () => {
   };
 
   return (
-    <Container fluid className="bg-light min-vh-100 d-flex align-items-center">
-      <Row className="justify-content-center w-100">
-        <Col xs={11} sm={8} md={6} lg={5}>
-          <Card className="shadow-sm">
+    <>
+      <AppNavbar />
+      <Container fluid className="bg-light" style={{ minHeight: 'calc(100vh - 60px)', display: 'flex', alignItems: 'center', paddingTop: '1rem', paddingBottom: '1rem' }}>
+        <Row className="justify-content-center w-100">
+          <Col xs={11} sm={8} md={6} lg={5}>
+            <Card className="shadow-sm">
             <Card.Body>
               <h3 className="mb-3 text-center">Create Account</h3>
               <p className="text-muted text-center mb-4">
@@ -268,6 +271,7 @@ const SignupPage = () => {
         </Col>
       </Row>
     </Container>
+    </>
   );
 };
 

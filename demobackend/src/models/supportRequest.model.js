@@ -28,7 +28,6 @@ const supportRequestSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'in_progress', 'resolved', 'closed'],
       default: 'pending',
-      index: true,
     },
     resolvedAt: {
       type: Date,
