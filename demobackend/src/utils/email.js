@@ -48,7 +48,16 @@ const sendPasswordResetEmail = async (email, resetToken, resetUrl) => {
   });
 
   try {
-    const transporter = createTransporter();
+    let transporter;
+    try {
+      transporter = createTransporter();
+    } catch (transporterError) {
+      console.error('❌ Failed to create email transporter:', {
+        message: transporterError.message,
+        stack: transporterError.stack,
+      });
+      return null;
+    }
 
     // Verify connection before sending
     console.log('Verifying SMTP connection...');
@@ -231,7 +240,16 @@ const sendOrderNotificationEmail = async (order, customer, products) => {
     console.log('✅ Input validation passed.');
 
     console.log('SMTP configuration verified. Creating transporter...');
-    const transporter = createTransporter();
+    let transporter;
+    try {
+      transporter = createTransporter();
+    } catch (transporterError) {
+      console.error('❌ Failed to create email transporter:', {
+        message: transporterError.message,
+        stack: transporterError.stack,
+      });
+      return null;
+    }
 
     // Find superadmin role and get superadmin users
     const Role = require('../models/role.model');
@@ -659,7 +677,16 @@ const sendOrderConfirmationEmail = async (order, customer, products) => {
     }
 
     console.log('✅ Input validation passed. Creating transporter...');
-    const transporter = createTransporter();
+    let transporter;
+    try {
+      transporter = createTransporter();
+    } catch (transporterError) {
+      console.error('❌ Failed to create email transporter:', {
+        message: transporterError.message,
+        stack: transporterError.stack,
+      });
+      return null;
+    }
 
     // Build product details HTML
     const productDetailsHtml = order.items.map((item, index) => {
@@ -946,7 +973,16 @@ const sendWelcomeEmail = async (customer) => {
     }
 
     console.log('✅ Input validation passed. Creating transporter...');
-    const transporter = createTransporter();
+    let transporter;
+    try {
+      transporter = createTransporter();
+    } catch (transporterError) {
+      console.error('❌ Failed to create email transporter:', {
+        message: transporterError.message,
+        stack: transporterError.stack,
+      });
+      return null;
+    }
 
     // Get featured products
     const Product = require('../models/product.model');
@@ -1210,7 +1246,16 @@ const sendSupportRequestEmail = async (supportData) => {
     console.log('✅ Input validation passed.');
 
     console.log('SMTP configuration verified. Creating transporter...');
-    const transporter = createTransporter();
+    let transporter;
+    try {
+      transporter = createTransporter();
+    } catch (transporterError) {
+      console.error('❌ Failed to create email transporter:', {
+        message: transporterError.message,
+        stack: transporterError.stack,
+      });
+      return null;
+    }
 
     // Find superadmin role and get superadmin users
     const Role = require('../models/role.model');

@@ -122,6 +122,7 @@ const AppNavbar = () => {
                 </NavDropdown>
                 <Nav.Link onClick={() => navigate('/admin/customer-activity-logs')} className="nav-link-item">Activity Logs</Nav.Link>
                 <Nav.Link onClick={() => navigate('/admin/error-logs')} className="nav-link-item">Error Logs</Nav.Link>
+                <Nav.Link onClick={() => navigate('/admin/support-requests')} className="nav-link-item">Support Requests</Nav.Link>
                 {user && (
                   <Nav.Link onClick={() => navigate('/admin/orders')} className="nav-link-item">Orders</Nav.Link>
                 )}

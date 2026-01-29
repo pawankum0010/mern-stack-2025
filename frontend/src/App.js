@@ -30,6 +30,7 @@ import CurrencySettingsPage from './pages/CurrencySettingsPage';
 import ContactSettingsPage from './pages/ContactSettingsPage';
 import CustomerActivityLogsPage from './pages/CustomerActivityLogsPage';
 import ErrorLogsPage from './pages/ErrorLogsPage';
+import SupportRequestsPage from './pages/SupportRequestsPage';
 import ActiveUsersReportPage from './pages/ActiveUsersReportPage';
 import HighestSellingProductsPage from './pages/HighestSellingProductsPage';
 import OrdersStatusReportPage from './pages/OrdersStatusReportPage';
@@ -69,6 +70,7 @@ function App() {
           <Route path="/admin/contact-settings" element={<ContactSettingsPage />} />
           <Route path="/admin/customer-activity-logs" element={<CustomerActivityLogsPage />} />
           <Route path="/admin/error-logs" element={<ErrorLogsPage />} />
+          <Route path="/admin/support-requests" element={<SupportRequestsPage />} />
           <Route path="/admin/reports/active-users" element={<ActiveUsersReportPage />} />
           <Route path="/admin/reports/highest-selling-products" element={<HighestSellingProductsPage />} />
           <Route path="/admin/reports/orders-status" element={<OrdersStatusReportPage />} />
