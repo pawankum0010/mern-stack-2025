@@ -17,11 +17,13 @@ import { FiFileText } from 'react-icons/fi';
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const OrderDetailPage = () => {
   const { id } = useParams();
   const { user, isAuthenticated } = useAuth();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const location = useLocation();
   const [order, setOrder] = useState(null);
@@ -219,8 +221,8 @@ const OrderDetailPage = () => {
                       <tr key={idx}>
                         <td>{item.name}</td>
                         <td>{item.quantity}</td>
-                        <td>${item.price?.toFixed(2) || '0.00'}</td>
-                        <td>${item.total?.toFixed(2) || '0.00'}</td>
+                        <td>{formatPrice(item.price || 0)}</td>
+                        <td>{formatPrice(item.total || 0)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -228,23 +230,23 @@ const OrderDetailPage = () => {
                 <div className="mt-3">
                   <div className="d-flex justify-content-between">
                     <span>Subtotal:</span>
-                    <span>${order.subtotal?.toFixed(2) || '0.00'}</span>
+                    <span>{formatPrice(order.subtotal || 0)}</span>
                   </div>
                   {order.tax > 0 && (
                     <div className="d-flex justify-content-between">
                       <span>Tax:</span>
-                      <span>${order.tax?.toFixed(2) || '0.00'}</span>
+                      <span>{formatPrice(order.tax || 0)}</span>
                     </div>
                   )}
                   {order.shipping > 0 && (
                     <div className="d-flex justify-content-between">
                       <span>Shipping:</span>
-                      <span>${order.shipping?.toFixed(2) || '0.00'}</span>
+                      <span>{formatPrice(order.shipping || 0)}</span>
                     </div>
                   )}
                   <div className="d-flex justify-content-between mt-2 pt-2 border-top">
                     <strong>Total:</strong>
-                    <strong className="h5">${order.total?.toFixed(2) || '0.00'}</strong>
+                    <strong className="h5">{formatPrice(order.total || 0)}</strong>
                   </div>
                 </div>
               </Card.Body>

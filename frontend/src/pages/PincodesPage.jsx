@@ -18,10 +18,12 @@ import { FiEdit2, FiTrash2, FiPlus, FiBell } from 'react-icons/fi';
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const PincodesPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [pincodes, setPincodes] = useState([]);
   const [notifications, setNotifications] = useState([]);
@@ -237,7 +239,7 @@ const PincodesPage = () => {
                     {pincodes.map((pincode) => (
                       <tr key={pincode._id}>
                         <td>{pincode.pincode}</td>
-                        <td>${pincode.shippingCharge.toFixed(2)}</td>
+                        <td>{formatPrice(pincode.shippingCharge)}</td>
                         <td>
                           <Badge bg={pincode.status === 'active' ? 'success' : 'secondary'}>
                             {pincode.status}

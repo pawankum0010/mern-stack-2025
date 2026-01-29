@@ -161,7 +161,7 @@ const ProductDetailsPage = () => {
       : 0;
 
   const saveAmount = product.compareAtPrice && product.compareAtPrice > product.price
-    ? (product.compareAtPrice - product.price).toFixed(2)
+    ? (product.compareAtPrice - product.price)
     : 0;
 
   // SEO data for product

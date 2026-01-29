@@ -17,6 +17,7 @@ import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const initialFormState = {
@@ -50,6 +51,7 @@ const initialFormState = {
 
 const ProductsPage = () => {
   const { user } = useAuth();
+  const { formatPrice } = useCurrency();
 
   // data
   const [products, setProducts] = useState([]);
@@ -426,7 +428,7 @@ const ProductsPage = () => {
                       ? item.category
                       : '-'}
                 </td>
-                <td>${item.price?.toFixed(2) || '0.00'}</td>
+                <td>{formatPrice(item.price || 0)}</td>
                 <td>{item.stock ?? 0}</td>
                 <td>
                   <Badge bg={item.status === 'active' ? 'success' : 'secondary'}>

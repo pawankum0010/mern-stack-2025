@@ -18,10 +18,12 @@ import { FiRefreshCw, FiFilter, FiX, FiBarChart2, FiDollarSign, FiShoppingBag } 
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const OrdersStatusReportPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [statusData, setStatusData] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -98,12 +100,6 @@ const OrdersStatusReportPage = () => {
     return <Badge bg={statusColors[status] || 'secondary'}>{status?.toUpperCase()}</Badge>;
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -159,7 +155,7 @@ const OrdersStatusReportPage = () => {
                       <Card className="text-center">
                         <Card.Body>
                           <FiDollarSign className="mb-2" size={24} />
-                          <h5>{formatCurrency(summary.totalAmount)}</h5>
+                          <h5>{formatPrice(summary.totalAmount)}</h5>
                           <p className="text-muted mb-0">Total Amount</p>
                         </Card.Body>
                       </Card>
@@ -236,7 +232,7 @@ const OrdersStatusReportPage = () => {
                                 <span className="text-muted ms-2">orders</span>
                               </div>
                               <div>
-                                <strong>{formatCurrency(status.totalAmount)}</strong>
+                                <strong>{formatPrice(status.totalAmount)}</strong>
                               </div>
                               <ProgressBar
                                 now={parseFloat(status.percentage)}
@@ -289,7 +285,7 @@ const OrdersStatusReportPage = () => {
                                       <td>{order.orderNumber}</td>
                                       <td>{order.user?.name || order.user?.email || 'N/A'}</td>
                                       <td>
-                                        <strong>{formatCurrency(order.total)}</strong>
+                                        <strong>{formatPrice(order.total)}</strong>
                                       </td>
                                       <td>
                                         <Badge bg="secondary">{order.itemsCount}</Badge>

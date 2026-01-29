@@ -14,11 +14,13 @@ import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const OrdersPage = () => {
   const { user, isAuthenticated } = useAuth();
   const { refreshCart } = useCart();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -197,7 +199,7 @@ const OrdersPage = () => {
                           {new Date(order.createdAt).toLocaleDateString()}
                         </td>
                         <td>{order.items?.length || 0}</td>
-                        <td>${order.total?.toFixed(2) || '0.00'}</td>
+                        <td>{formatPrice(order.total || 0)}</td>
                         <td>{getStatusBadge(order.status)}</td>
                         <td>
                           <div className="d-flex gap-2 flex-wrap">

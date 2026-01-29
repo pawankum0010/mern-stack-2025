@@ -17,11 +17,13 @@ import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const CheckoutPage = () => {
   const { user, isAuthenticated } = useAuth();
   const { refreshCart } = useCart();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -641,7 +643,7 @@ const CheckoutPage = () => {
                           <div>{product.name}</div>
                           <small className="text-muted">Qty: {quantity}</small>
                         </div>
-                        <div>${(price * quantity).toFixed(2)}</div>
+                        <div>{formatPrice(price * quantity)}</div>
                       </div>
                     );
                   })}
@@ -649,20 +651,20 @@ const CheckoutPage = () => {
                 <hr />
                 <div className="d-flex justify-content-between mb-2">
                   <span>Subtotal:</span>
-                  <span>${subtotal.toFixed(2)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-2">
                   <span>Tax:</span>
-                  <span>${Number(formData.tax).toFixed(2)}</span>
+                  <span>{formatPrice(Number(formData.tax))}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-3">
                   <span>Shipping:</span>
-                  <span>${Number(formData.shipping).toFixed(2)}</span>
+                  <span>{formatPrice(Number(formData.shipping))}</span>
                 </div>
                 <hr />
                 <div className="d-flex justify-content-between mb-4">
                   <strong>Total:</strong>
-                  <strong className="h5">${calculateTotal().toFixed(2)}</strong>
+                  <strong className="h5">{formatPrice(calculateTotal())}</strong>
                 </div>
                 <Button
                   variant="primary"

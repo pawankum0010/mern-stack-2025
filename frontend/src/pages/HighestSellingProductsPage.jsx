@@ -17,10 +17,12 @@ import { FiRefreshCw, FiFilter, FiX, FiTrendingUp, FiDollarSign, FiPackage } fro
 import AppNavbar from '../components/AppNavbar';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
 const HighestSellingProductsPage = () => {
   const { user, isAuthenticated } = useAuth();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [summary, setSummary] = useState(null);
@@ -84,12 +86,6 @@ const HighestSellingProductsPage = () => {
     });
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount);
-  };
 
   if (!isAuthenticated || !isAdmin) {
     return null;
@@ -134,7 +130,7 @@ const HighestSellingProductsPage = () => {
                       <Card className="text-center">
                         <Card.Body>
                           <FiDollarSign className="mb-2" size={24} />
-                          <h5>{formatCurrency(summary.totalRevenue)}</h5>
+                          <h5>{formatPrice(summary.totalRevenue)}</h5>
                           <p className="text-muted mb-0">Total Revenue</p>
                         </Card.Body>
                       </Card>
@@ -257,9 +253,9 @@ const HighestSellingProductsPage = () => {
                             <Badge bg="info">{product.totalQuantity}</Badge>
                           </td>
                           <td>
-                            <strong>{formatCurrency(product.totalRevenue)}</strong>
+                            <strong>{formatPrice(product.totalRevenue)}</strong>
                           </td>
-                          <td>{formatCurrency(product.averagePrice)}</td>
+                          <td>{formatPrice(product.averagePrice)}</td>
                           <td>
                             <Badge bg="primary">{product.orderCount}</Badge>
                           </td>
