@@ -107,10 +107,13 @@ After adding all environment variables:
 ### Alternative: Use Different Email Service
 
 If Gmail continues to cause issues, consider:
+- **BigRock Email** (your hosting email) - See `BIGROCK_SMTP_SETUP.md`
 - **SendGrid** (free tier: 100 emails/day)
 - **Mailgun** (free tier: 5,000 emails/month)
 - **AWS SES** (very cheap, pay per email)
 - **Outlook/Hotmail** (similar to Gmail, also needs app password)
+
+**Note:** If you have a BigRock hosting account with email (`info@softchiili.com`), you can use that instead! It's often easier since you don't need an app password. See `BIGROCK_SMTP_SETUP.md` for instructions.
 
 ## Quick Checklist
 
