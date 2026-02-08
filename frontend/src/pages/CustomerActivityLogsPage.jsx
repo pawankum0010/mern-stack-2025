@@ -16,7 +16,6 @@ import {
 import { FiRefreshCw, FiFilter, FiX, FiUser, FiCalendar, FiTrendingUp, FiList, FiClock } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -798,11 +797,5 @@ const CustomerActivityLogsPage = () => {
   );
 };
 
-const CustomerActivityLogsPageWithProtection = () => (
-  <ProtectedRoute roles={['admin', 'superadmin']}>
-    <CustomerActivityLogsPage />
-  </ProtectedRoute>
-);
-
-export default CustomerActivityLogsPageWithProtection;
+export default CustomerActivityLogsPage;
 

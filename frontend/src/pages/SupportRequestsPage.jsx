@@ -16,7 +16,6 @@ import {
 import { FiRefreshCw, FiFilter, FiX, FiCheckCircle, FiTrash2, FiEye, FiMail } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -502,11 +501,5 @@ const SupportRequestsPage = () => {
   );
 };
 
-const SupportRequestsPageWithProtection = () => (
-  <ProtectedRoute roles={['admin', 'superadmin']}>
-    <SupportRequestsPage />
-  </ProtectedRoute>
-);
-
-export default SupportRequestsPageWithProtection;
+export default SupportRequestsPage;
 

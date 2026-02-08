@@ -16,7 +16,6 @@ import {
 import { FiEdit2, FiTrash2, FiPlus, FiX } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -338,11 +337,5 @@ const WeightUnitsPage = () => {
   );
 };
 
-const WeightUnitsPageWithProtection = () => (
-  <ProtectedRoute roles={['admin', 'superadmin']}>
-    <WeightUnitsPage />
-  </ProtectedRoute>
-);
-
-export default WeightUnitsPageWithProtection;
+export default WeightUnitsPage;
 

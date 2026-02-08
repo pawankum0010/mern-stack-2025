@@ -50,6 +50,10 @@ const AppNavbar = () => {
   const isAdmin = user?.role?.name?.toLowerCase() === 'admin' || user?.role?.name?.toLowerCase() === 'superadmin';
   const isCustomer = user?.role?.name?.toLowerCase() === 'customer';
 
+  if (location.pathname.startsWith('/admin')) {
+    return null;
+  }
+
   return (
     <>
       {/* Top Navigation Bar - Amazon Style */}

@@ -1,0 +1,417 @@
+/* ========== Magento-style Backend Layout ========== */
+.backend-wrap {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f4f4;
+}
+
+/* ========== Sidebar (Magento-style) ========== */
+.backend-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: linear-gradient(180deg, #363636 0%, #2b2b2b 100%);
+  color: #e8e8e8;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s ease, min-width 0.25s ease;
+  z-index: 1030;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.backend-wrap.sidebar-collapsed .backend-sidebar {
+  width: 72px;
+  min-width: 72px;
+}
+
+.backend-sidebar-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  flex-shrink: 0;
+}
+
+.backend-sidebar-toggle {
+  color: #b0b0b0 !important;
+  padding: 8px !important;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.backend-sidebar-toggle:hover {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.backend-sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  flex: 1;
+  min-width: 0;
+}
+
+.backend-sidebar-logo img {
+  height: 32px;
+  width: auto;
+  flex-shrink: 0;
+}
+
+.backend-sidebar-logo span {
+  font-weight: 600;
+  font-size: 1.15rem;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+
+/* Nav container */
+.backend-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.backend-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.backend-nav::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.backend-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* Section (group with children) */
+.backend-nav-section {
+  margin-bottom: 8px;
+}
+
+.backend-nav-section:not(:first-child) {
+  margin-top: 4px;
+}
+
+.backend-nav-section-title {
+  padding: 10px 16px 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a8a8a;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backend-nav-section-icon {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.backend-nav-section.has-active .backend-nav-section-title {
+  color: #b0b0b0;
+}
+
+/* Top-level link (Products, Users, Activity Logs, etc.) */
+.backend-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 16px;
+  margin: 0 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #d8d8d8;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.backend-nav-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.backend-nav-link.active {
+  background: rgba(235, 82, 2, 0.18);
+  color: #fff;
+  border-left-color: #eb5202;
+  font-weight: 500;
+}
+
+.backend-nav-link-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.backend-nav-link-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sub-items (under Sales, Catalog, etc.) */
+.backend-nav-sublink {
+  margin-left: 16px;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  color: #c8c8c8;
+  border-radius: 6px;
+  width: calc(100% - 16px);
+}
+
+.backend-nav-sublink:hover {
+  color: #fff;
+}
+
+.backend-nav-sublink.active {
+  background: rgba(235, 82, 2, 0.2);
+  color: #fff;
+}
+
+.backend-wrap.sidebar-collapsed .backend-nav-link {
+  margin: 0 8px;
+  padding: 12px;
+  justify-content: center;
+}
+
+.backend-wrap.sidebar-collapsed .backend-nav-section-title {
+  padding: 10px 12px;
+  justify-content: center;
+}
+
+.backend-wrap.sidebar-collapsed .backend-nav-section-icon {
+  margin: 0;
+}
+
+/* Main area */
+.backend-main {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  transition: margin-left 0.25s ease;
+}
+
+.backend-wrap.sidebar-collapsed .backend-main {
+  margin-left: 72px;
+}
+
+/* Header */
+.backend-header {
+  background: #fff;
+  border-bottom: 1px solid #e3e3e3;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  flex-shrink: 0;
+}
+
+.backend-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.backend-mobile-menu {
+  color: #333 !important;
+  padding: 4px 8px !important;
+}
+
+.backend-breadcrumb {
+  font-size: 0.9rem;
+  color: #6b6b6b;
+}
+
+.backend-breadcrumb-sep {
+  margin: 0 6px;
+  color: #c0c0c0;
+}
+
+.backend-breadcrumb-link {
+  background: none;
+  border: none;
+  color: #0066cc;
+  cursor: pointer;
+  padding: 0;
+}
+
+.backend-breadcrumb-link:hover {
+  text-decoration: underline;
+}
+
+.backend-breadcrumb-current {
+  color: #333;
+  font-weight: 500;
+}
+
+.backend-header-right {
+  display: flex;
+  align-items: center;
+}
+
+.backend-user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #333;
+  cursor: pointer;
+}
+
+.backend-user-dropdown .dropdown-toggle::after {
+  margin-left: 6px;
+}
+
+.backend-user-role {
+  font-size: 0.85rem;
+  color: #6b6b6b;
+}
+
+/* Content */
+.backend-content {
+  flex: 1;
+  padding: 24px;
+  overflow: auto;
+  background: #f4f4f4;
+}
+
+/* ========== Backend Login Page (Magento-style) ========== */
+.backend-login-wrap {
+  min-height: 100vh;
+  background: linear-gradient(145deg, #2d2d2d 0%, #1a1a1a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.backend-login-brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.backend-login-brand img {
+  height: 56px;
+  width: auto;
+  max-width: 180px;
+  margin-bottom: 16px;
+  object-fit: contain;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.backend-login-brand h1 {
+  color: #fff;
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.backend-login-brand p {
+  color: #9e9e9e;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.backend-login-card {
+  width: 100%;
+  max-width: 420px;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+
+.backend-login-card .card-body {
+  padding: 28px;
+}
+
+.backend-login-input {
+  border-radius: 6px;
+  border-color: #e3e3e3;
+}
+
+.backend-login-input:focus {
+  border-color: #eb5202;
+  box-shadow: 0 0 0 0.2rem rgba(235, 82, 2, 0.25);
+}
+
+.backend-login-toggle-pw {
+  border-color: #e3e3e3;
+  border-left: none;
+}
+
+.backend-login-btn {
+  background: #eb5202;
+  border-color: #eb5202;
+  font-weight: 600;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.backend-login-btn:hover {
+  background: #c44a02;
+  border-color: #c44a02;
+}
+
+.backend-login-forgot {
+  font-size: 0.9rem;
+}
+
+.backend-login-forgot a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.backend-login-forgot a:hover {
+  text-decoration: underline;
+  color: #eb5202;
+}
+
+@media (max-width: 767px) {
+  .backend-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .backend-wrap:not(.sidebar-collapsed) .backend-sidebar {
+    transform: translateX(0);
+    width: 280px;
+  }
+
+  .backend-main {
+    margin-left: 0;
+  }
+
+  .backend-wrap.sidebar-collapsed .backend-main {
+    margin-left: 0;
+  }
+}

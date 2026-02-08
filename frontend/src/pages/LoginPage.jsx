@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import AppNavbar from '../components/AppNavbar';
 
 const LoginPage = () => {
-  const { login, isAuthenticated, authError, loading } = useAuth();
+  const { login, isAuthenticated, user, authError, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,7 +18,10 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
 
+  const userRole = user?.role?.name?.toLowerCase?.();
+  const isAdminRole = userRole === 'admin' || userRole === 'superadmin' || userRole === 'support';
   if (isAuthenticated) {
+    if (isAdminRole) return <Navigate to="/admin/products" replace />;
     return <Navigate to="/" replace />;
   }
 
@@ -35,8 +38,8 @@ const LoginPage = () => {
       const response = await login(formState);
       const userRole = response?.data?.user?.role?.name?.toLowerCase();
       
-      // Redirect admin/superadmin to product management, others to product listing
-      if (userRole === 'admin' || userRole === 'superadmin') {
+      const isAdminRole = ['admin', 'superadmin', 'support'].includes(userRole);
+      if (isAdminRole) {
         navigate('/admin/products', { replace: true });
       } else {
         const from = location.state?.from || '/';
@@ -112,6 +115,9 @@ const LoginPage = () => {
               </div>
               <div className="mt-2">
                 <Link to="/forgot-password">Forgot password?</Link>
+              </div>
+              <div className="mt-2">
+                Admin? <Link to="/backend">Sign in to backend</Link>
               </div>
             </Card.Footer>
           </Card>

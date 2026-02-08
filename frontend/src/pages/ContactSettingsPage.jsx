@@ -13,7 +13,6 @@ import {
 import { FiSave, FiMail, FiPhone, FiMapPin, FiClock } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -386,11 +385,5 @@ const ContactSettingsPage = () => {
   );
 };
 
-const ContactSettingsPageWithProtection = () => (
-  <ProtectedRoute roles={['admin', 'superadmin']}>
-    <ContactSettingsPage />
-  </ProtectedRoute>
-);
-
-export default ContactSettingsPageWithProtection;
+export default ContactSettingsPage;
 

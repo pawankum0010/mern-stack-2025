@@ -14,8 +14,6 @@ import {
 } from 'react-bootstrap';
 import { FiRefreshCw, FiFilter, FiX, FiTrendingUp, FiDollarSign, FiPackage } from 'react-icons/fi';
 
-import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
@@ -92,8 +90,7 @@ const HighestSellingProductsPage = () => {
   }
 
   return (
-    <ProtectedRoute roles={['admin', 'superadmin']}>
-      <AppNavbar />
+    <>
       <Container fluid className="py-4">
         <Row>
           <Col>
@@ -269,7 +266,7 @@ const HighestSellingProductsPage = () => {
           </Col>
         </Row>
       </Container>
-    </ProtectedRoute>
+    </>
   );
 };
 

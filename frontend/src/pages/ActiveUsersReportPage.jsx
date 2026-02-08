@@ -14,8 +14,6 @@ import {
 } from 'react-bootstrap';
 import { FiRefreshCw, FiFilter, FiX, FiUser } from 'react-icons/fi';
 
-import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -149,8 +147,7 @@ const ActiveUsersReportPage = () => {
   }
 
   return (
-    <ProtectedRoute roles={['admin', 'superadmin']}>
-      <AppNavbar />
+    <>
       <Container fluid className="py-4">
         <Row>
           <Col>
@@ -335,7 +332,7 @@ const ActiveUsersReportPage = () => {
           </Col>
         </Row>
       </Container>
-    </ProtectedRoute>
+    </>
   );
 };
 

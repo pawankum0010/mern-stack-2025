@@ -16,8 +16,8 @@ import {
 import { FiEdit2, FiTrash2, FiPlus, FiBell } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
+import ProtectedRoute from '../components/ProtectedRoute';
 import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 
@@ -409,11 +409,5 @@ const PincodesPage = () => {
   );
 };
 
-const PincodesPageWithProtection = () => (
-  <ProtectedRoute roles={['admin', 'superadmin']}>
-    <PincodesPage />
-  </ProtectedRoute>
-);
-
-export default PincodesPageWithProtection;
+export default PincodesPage;
 

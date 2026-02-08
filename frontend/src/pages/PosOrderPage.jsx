@@ -17,7 +17,6 @@ import {
 import { FiPlus, FiMinus, FiTrash2, FiSearch } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
 import './PosOrderPage.css';
@@ -1178,11 +1177,5 @@ const PosOrderPage = () => {
   );
 };
 
-const PosOrderPageWithProtection = () => (
-  <ProtectedRoute roles={['superadmin', 'admin']}>
-    <PosOrderPage />
-  </ProtectedRoute>
-);
-
-export default PosOrderPageWithProtection;
+export default PosOrderPage;
 

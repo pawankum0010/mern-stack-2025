@@ -15,7 +15,6 @@ import { gsap } from 'gsap';
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -406,11 +405,5 @@ const CategoriesPage = () => {
   );
 };
 
-const CategoriesPageWithProtection = () => (
-  <ProtectedRoute requiredRoles={['admin', 'superadmin']}>
-    <CategoriesPage />
-  </ProtectedRoute>
-);
-
-export default CategoriesPageWithProtection;
+export default CategoriesPage;
 

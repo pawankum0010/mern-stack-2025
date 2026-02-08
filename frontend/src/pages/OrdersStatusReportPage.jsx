@@ -15,8 +15,6 @@ import {
 } from 'react-bootstrap';
 import { FiRefreshCw, FiFilter, FiX, FiBarChart2, FiDollarSign, FiShoppingBag } from 'react-icons/fi';
 
-import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { useCurrency } from '../context/CurrencyContext';
 import api from '../api/client';
@@ -117,8 +115,7 @@ const OrdersStatusReportPage = () => {
   }
 
   return (
-    <ProtectedRoute roles={['admin', 'superadmin']}>
-      <AppNavbar />
+    <>
       <Container fluid className="py-4">
         <Row>
           <Col>
@@ -307,7 +304,7 @@ const OrdersStatusReportPage = () => {
           </Col>
         </Row>
       </Container>
-    </ProtectedRoute>
+    </>
   );
 };
 

@@ -16,7 +16,6 @@ import {
 import { FiRefreshCw, FiFilter, FiX, FiCheckCircle, FiTrash2, FiEye } from 'react-icons/fi';
 
 import AppNavbar from '../components/AppNavbar';
-import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/client';
 
@@ -569,11 +568,5 @@ const ErrorLogsPage = () => {
   );
 };
 
-const ErrorLogsPageWithProtection = () => (
-  <ProtectedRoute roles={['admin', 'superadmin']}>
-    <ErrorLogsPage />
-  </ProtectedRoute>
-);
-
-export default ErrorLogsPageWithProtection;
+export default ErrorLogsPage;
 

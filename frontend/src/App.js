@@ -13,6 +13,7 @@ import OrdersPage from './pages/OrdersPage';
 import OrderDetailPage from './pages/OrderDetailPage';
 import InvoicePage from './pages/InvoicePage';
 import LoginPage from './pages/LoginPage';
+import BackendLoginPage from './pages/BackendLoginPage';
 import SignupPage from './pages/SignupPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -39,6 +40,8 @@ import UnauthorizedPage from './pages/UnauthorizedPage';
 import SupportPage from './pages/SupportPage';
 import AdminRedirect from './components/AdminRedirect';
 import DefaultRedirect from './components/DefaultRedirect';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import BackendLayout from './components/BackendLayout';
 
 import './App.css';
 
@@ -57,31 +60,34 @@ function App() {
         <Routes>
           <Route path="/" element={<AdminRedirect><ProductListingPage /></AdminRedirect>} />
           <Route path="/products/:id" element={<AdminRedirect><ProductDetailsPage /></AdminRedirect>} />
-          <Route path="/admin" element={<Navigate to="/admin/products" replace />} />
-          <Route path="/admin/users" element={<UsersPage />} />
-          <Route path="/admin/products" element={<ProductsPage />} />
-          <Route path="/admin/vendors" element={<VendorsPage />} />
-          <Route path="/admin/categories" element={<CategoriesPage />} />
-          <Route path="/admin/states" element={<StatesPage />} />
-          <Route path="/admin/weight-units" element={<WeightUnitsPage />} />
-          <Route path="/admin/sizes" element={<SizesPage />} />
-          <Route path="/admin/brands" element={<BrandsPage />} />
-          <Route path="/admin/pincodes" element={<PincodesPage />} />
-          <Route path="/admin/currencies" element={<CurrencySettingsPage />} />
-          <Route path="/admin/contact-settings" element={<ContactSettingsPage />} />
-          <Route path="/admin/customer-activity-logs" element={<CustomerActivityLogsPage />} />
-          <Route path="/admin/error-logs" element={<ErrorLogsPage />} />
-          <Route path="/admin/support-requests" element={<SupportRequestsPage />} />
-          <Route path="/admin/reports/active-users" element={<ActiveUsersReportPage />} />
-          <Route path="/admin/reports/highest-selling-products" element={<HighestSellingProductsPage />} />
-          <Route path="/admin/reports/orders-status" element={<OrdersStatusReportPage />} />
-          <Route path="/admin/orders" element={<OrdersPage />} />
-          <Route path="/admin/pos" element={<PosOrderPage />} />
+          <Route path="/backend" element={<BackendLoginPage />} />
+          <Route path="/admin" element={<AdminProtectedRoute><BackendLayout /></AdminProtectedRoute>}>
+            <Route index element={<Navigate to="/admin/products" replace />} />
+            <Route path="users" element={<UsersPage />} />
+            <Route path="products" element={<ProductsPage />} />
+            <Route path="vendors" element={<VendorsPage />} />
+            <Route path="categories" element={<CategoriesPage />} />
+            <Route path="states" element={<StatesPage />} />
+            <Route path="weight-units" element={<WeightUnitsPage />} />
+            <Route path="sizes" element={<SizesPage />} />
+            <Route path="brands" element={<BrandsPage />} />
+            <Route path="pincodes" element={<PincodesPage />} />
+            <Route path="currencies" element={<CurrencySettingsPage />} />
+            <Route path="contact-settings" element={<ContactSettingsPage />} />
+            <Route path="customer-activity-logs" element={<CustomerActivityLogsPage />} />
+            <Route path="error-logs" element={<ErrorLogsPage />} />
+            <Route path="support-requests" element={<SupportRequestsPage />} />
+            <Route path="reports/active-users" element={<ActiveUsersReportPage />} />
+            <Route path="reports/highest-selling-products" element={<HighestSellingProductsPage />} />
+            <Route path="reports/orders-status" element={<OrdersStatusReportPage />} />
+            <Route path="orders" element={<OrdersPage />} />
+            <Route path="orders/:id" element={<OrderDetailPage />} />
+            <Route path="pos" element={<PosOrderPage />} />
+          </Route>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/orders/:id" element={<OrderDetailPage />} />
-          <Route path="/admin/orders/:id" element={<OrderDetailPage />} />
           <Route path="/invoices/:id" element={<InvoicePage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/addresses" element={<AddressesPage />} />
