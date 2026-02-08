@@ -35,6 +35,7 @@ import SupportRequestsPage from './pages/SupportRequestsPage';
 import ActiveUsersReportPage from './pages/ActiveUsersReportPage';
 import HighestSellingProductsPage from './pages/HighestSellingProductsPage';
 import OrdersStatusReportPage from './pages/OrdersStatusReportPage';
+import AdminDashboardPage from './pages/AdminDashboardPage';
 import PosOrderPage from './pages/PosOrderPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import SupportPage from './pages/SupportPage';
@@ -50,19 +51,20 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <CurrencyProvider>
-          <CartProvider>
-            <BrowserRouter
+          <BrowserRouter
             future={{
               v7_startTransition: true,
               v7_relativeSplatPath: true,
             }}
           >
+          <CartProvider>
         <Routes>
           <Route path="/" element={<AdminRedirect><ProductListingPage /></AdminRedirect>} />
           <Route path="/products/:id" element={<AdminRedirect><ProductDetailsPage /></AdminRedirect>} />
           <Route path="/backend" element={<BackendLoginPage />} />
           <Route path="/admin" element={<AdminProtectedRoute><BackendLayout /></AdminProtectedRoute>}>
-            <Route index element={<Navigate to="/admin/products" replace />} />
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
             <Route path="users" element={<UsersPage />} />
             <Route path="products" element={<ProductsPage />} />
             <Route path="vendors" element={<VendorsPage />} />
@@ -99,8 +101,8 @@ function App() {
           <Route path="/unauthorized" element={<UnauthorizedPage />} />
           <Route path="*" element={<DefaultRedirect />} />
         </Routes>
-          </BrowserRouter>
           </CartProvider>
+          </BrowserRouter>
         </CurrencyProvider>
       </AuthProvider>
     </ThemeProvider>

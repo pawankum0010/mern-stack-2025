@@ -189,6 +189,49 @@ exports.getHighestSellingProducts = async (req, res) => {
 };
 
 /**
+ * Get dashboard stats for admin (Magento-style dashboard)
+ * Returns: totalOrders, totalRevenue, totalCustomers, totalProducts, recentOrders
+ */
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const [totalOrders, totalRevenueResult, totalCustomers, totalProducts, recentOrders] = await Promise.all([
+      Order.countDocuments(),
+      Order.aggregate([
+        { $match: { status: { $ne: 'cancelled' } } },
+        { $group: { _id: null, total: { $sum: '$total' } } },
+      ]),
+      User.countDocuments(),
+      Product.countDocuments(),
+      Order.find({})
+        .populate('user', 'name email')
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .select('orderNumber status total createdAt items')
+        .lean(),
+    ]);
+
+    const totalRevenue = totalRevenueResult[0]?.total ?? 0;
+
+    const pendingOrders = await Order.countDocuments({ status: 'pending' });
+
+    res.json({
+      success: true,
+      data: {
+        totalOrders,
+        totalRevenue,
+        totalCustomers,
+        totalProducts,
+        pendingOrders,
+        recentOrders,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ message: 'Error fetching dashboard stats', error: error.message });
+  }
+};
+
+/**
  * Get orders report grouped by status
  * Query params: startDate, endDate
  */

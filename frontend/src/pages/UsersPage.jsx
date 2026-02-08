@@ -302,8 +302,8 @@ const UsersPage = () => {
 
     return (
       <div className="table-responsive">
-        <Table striped bordered hover size="sm">
-          <thead className="table-dark">
+        <Table responsive className="admin-table mb-0">
+          <thead>
             <tr>
               <th>Name</th>
               <th>Email</th>
@@ -383,33 +383,37 @@ const UsersPage = () => {
   return (
     <>
       <AppNavbar />
-      <Container fluid className="py-4">
-        <Row className="mb-3">
-          <Col>
-            <h2>User Management</h2>
-            <p className="text-muted">Manage your users</p>
-          </Col>
-          {canManageUsers && (
-            <Col xs="auto">
-              <Button variant="primary" onClick={handleAddUser}>
-                + Add User
-              </Button>
-            </Col>
-          )}
-        </Row>
+      <div className="admin-page">
+        <div className="admin-page-header">
+          <h1 className="admin-page-title">Users</h1>
+          <p className="admin-page-subtitle">Manage users and roles</p>
+        </div>
 
         {feedback.message && (
           <Alert
             variant={feedback.type}
             dismissible
             onClose={() => setFeedback({ type: null, message: null })}
+            className="mb-3"
           >
             {feedback.message}
           </Alert>
         )}
 
-        <Card>{renderUsers()}</Card>
-      </Container>
+        <Card className="admin-card">
+          <Card.Header className="admin-card-header">
+            <div className="admin-card-header-inner">
+              <h2 className="admin-card-title mb-0">User List</h2>
+              {canManageUsers && (
+                <Button size="sm" className="admin-btn-primary" onClick={handleAddUser}>
+                  Add User
+                </Button>
+              )}
+            </div>
+          </Card.Header>
+          <Card.Body className="p-0">{renderUsers()}</Card.Body>
+        </Card>
+      </div>
 
       {/* overlay */}
       <div

@@ -414,8 +414,8 @@ const ProductsPage = () => {
 
     return (
       <div className="table-responsive">
-        <Table striped bordered hover size="sm">
-          <thead className="table-dark">
+        <Table responsive className="admin-table">
+          <thead>
             <tr>
               <th>Name</th>
               <th>Category</th>
@@ -484,51 +484,47 @@ const ProductsPage = () => {
   return (
     <>
       <AppNavbar />
-      <Container fluid className="pb-4 position-relative">
-        <Row className="g-4">
-          <Col xs={12}>
-            {feedback.message && (
-              <Alert
-                variant={feedback.type === 'success' ? 'success' : 'danger'}
-                onClose={() => setFeedback({ type: null, message: null })}
-                dismissible
-              >
-                {feedback.message}
-              </Alert>
-            )}
-            <Card className="shadow-sm">
-              <Card.Body>
-                <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
-                  <div>
-                    <Card.Title>Product Management</Card.Title>
-                    <Card.Subtitle className="text-muted">
-                      Manage your eCommerce product catalog.
-                    </Card.Subtitle>
-                  </div>
-                  <div className="d-flex gap-2">
-                    <Button
-                      variant="outline-primary"
-                      size="sm"
-                      onClick={fetchProducts}
-                      disabled={loadingProducts}
-                    >
-                      Refresh
-                    </Button>
-                    {canManageProducts && (
-                      <Button size="sm" onClick={handleAddProduct}>
-                        + Add Product
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                {renderProducts()}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      </Container>
+      <div className="admin-page">
+        <div className="admin-page-header">
+          <h1 className="admin-page-title">Products</h1>
+          <p className="admin-page-subtitle">Manage your product catalog</p>
+        </div>
+        {feedback.message && (
+          <Alert
+            variant={feedback.type === 'success' ? 'success' : 'danger'}
+            onClose={() => setFeedback({ type: null, message: null })}
+            dismissible
+            className="mb-3"
+          >
+            {feedback.message}
+          </Alert>
+        )}
+        <Card className="admin-card">
+          <Card.Header className="admin-card-header">
+            <div className="admin-card-header-inner">
+              <h2 className="admin-card-title mb-0">Product List</h2>
+              <div className="d-flex gap-2">
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={fetchProducts}
+                  disabled={loadingProducts}
+                >
+                  Refresh
+                </Button>
+                {canManageProducts && (
+                  <Button size="sm" className="admin-btn-primary" onClick={handleAddProduct}>
+                    Add Product
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Card.Header>
+          <Card.Body>{renderProducts()}</Card.Body>
+        </Card>
+      </div>
 
-      {/* overlay */}
+      {/* overlay - keep for drawer */}
       <div
         ref={overlayRef}
         className="drawer-overlay"

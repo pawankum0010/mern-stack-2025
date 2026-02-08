@@ -1,0 +1,113 @@
+/* Admin Dashboard - Magento-style */
+.admin-dashboard-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  color: #6b6b6b;
+}
+
+.admin-dashboard-cards {
+  margin-bottom: 24px;
+}
+
+.admin-dashboard-card {
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s;
+}
+
+.admin-dashboard-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.admin-dashboard-card .card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.admin-dashboard-card-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.admin-dashboard-card-revenue .admin-dashboard-card-icon {
+  background: rgba(0, 168, 89, 0.12);
+  color: #00a859;
+}
+
+.admin-dashboard-card-orders .admin-dashboard-card-icon {
+  background: rgba(235, 82, 2, 0.12);
+  color: #eb5202;
+}
+
+.admin-dashboard-card-customers .admin-dashboard-card-icon {
+  background: rgba(0, 102, 204, 0.12);
+  color: #0066cc;
+}
+
+.admin-dashboard-card-pending .admin-dashboard-card-icon {
+  background: rgba(255, 193, 7, 0.2);
+  color: #b8860b;
+}
+
+.admin-dashboard-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.admin-dashboard-card-label {
+  font-size: 0.85rem;
+  color: #6b6b6b;
+}
+
+.admin-dashboard-card-value {
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.admin-dashboard-quickstats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-dashboard-quickstat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.admin-dashboard-quickstat:last-of-type {
+  border-bottom: none;
+}
+
+.admin-dashboard-quickstat span {
+  flex: 1;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.admin-dashboard-quickstat strong {
+  font-size: 1rem;
+  color: #333;
+}
+
+.admin-card-empty {
+  padding: 32px;
+  text-align: center;
+  color: #6b6b6b;
+}

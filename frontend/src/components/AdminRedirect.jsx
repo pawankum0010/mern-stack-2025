@@ -16,7 +16,7 @@ const AdminRedirect = ({ children }) => {
 
   if (isAdmin) {
     // Redirect admin users to product management page
-    return <Navigate to="/admin/products" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return children;

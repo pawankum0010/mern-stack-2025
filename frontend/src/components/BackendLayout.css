@@ -303,6 +303,129 @@
   background: #f4f4f4;
 }
 
+/* ========== Magento-style Admin Inner Pages ========== */
+.admin-page {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-page-header {
+  margin-bottom: 24px;
+}
+
+.admin-page-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+
+.admin-page-subtitle {
+  font-size: 0.95rem;
+  color: #6b6b6b;
+  margin: 0;
+}
+
+.admin-card {
+  background: #fff;
+  border: 1px solid #e3e3e3;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+}
+
+.admin-card-header {
+  background: #f9f9f9;
+  border-bottom: 1px solid #e3e3e3;
+  padding: 14px 20px;
+  font-weight: 600;
+}
+
+.admin-card-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.admin-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.admin-card-action {
+  font-size: 0.875rem;
+}
+
+.admin-card .card-body {
+  padding: 20px;
+}
+
+.admin-card-table .card-body {
+  padding: 0;
+}
+
+.admin-table {
+  font-size: 0.9rem;
+}
+
+.admin-table thead th {
+  background: #f9f9f9;
+  border-bottom: 2px solid #e3e3e3;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.admin-table tbody td {
+  padding: 12px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid #eee;
+}
+
+.admin-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.admin-toolbar-left,
+.admin-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-form-group label {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.admin-btn-primary {
+  background: #eb5202;
+  border-color: #eb5202;
+}
+
+.admin-btn-primary:hover {
+  background: #c44a02;
+  border-color: #c44a02;
+}
+
 /* ========== Backend Login Page (Magento-style) ========== */
 .backend-login-wrap {
   min-height: 100vh;

@@ -40,7 +40,7 @@ const LoginPage = () => {
       
       const isAdminRole = ['admin', 'superadmin', 'support'].includes(userRole);
       if (isAdminRole) {
-        navigate('/admin/products', { replace: true });
+        navigate('/admin/dashboard', { replace: true });
       } else {
         const from = location.state?.from || '/';
         navigate(from, { replace: true });

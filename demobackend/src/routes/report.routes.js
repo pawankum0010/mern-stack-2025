@@ -4,8 +4,13 @@ const reportController = require('../controllers/report.controller');
 const authenticate = require('../middlewares/authenticate');
 const { authorizeRoles } = require('../middlewares/authorize');
 
-// All report routes require authentication and admin/superadmin role
+// All report routes require authentication
 router.use(authenticate);
+
+// Dashboard stats (Magento-style) - allow admin, superadmin, support
+router.get('/dashboard', authorizeRoles('admin', 'superadmin', 'support'), reportController.getDashboardStats);
+
+// Other reports require admin/superadmin only
 router.use(authorizeRoles('admin', 'superadmin'));
 
 // Active users report

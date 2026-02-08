@@ -15,7 +15,7 @@ const DefaultRedirect = () => {
   const isAdmin = userRole === 'admin' || userRole === 'superadmin';
 
   if (isAdmin) {
-    return <Navigate to="/admin/products" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   return <Navigate to="/" replace />;

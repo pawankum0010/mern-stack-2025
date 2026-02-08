@@ -5,7 +5,7 @@ const helmet = require('helmet');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 
 const userRoutes = require('./src/routes/user.routes');
 const roleRoutes = require('./src/routes/role.routes');
@@ -32,6 +32,9 @@ const errorHandler = require('./src/middlewares/errorHandler');
 const { apiLimiter } = require('./src/middlewares/security');
 const validateInput = require('./src/middlewares/validateInput');
 const { connectDB } = require('./src/config/db');
+const authenticate = require('./src/middlewares/authenticate');
+const { authorizeRoles } = require('./src/middlewares/authorize');
+const reportController = require('./src/controllers/report.controller');
 
 // Security Headers using Helmet
 app.use(
@@ -85,6 +88,21 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Input validation and sanitization
 app.use(validateInput);
+
+// Dashboard route - register first so it always matches (before rate limit)
+app.get(
+  '/api/reports/dashboard',
+  authenticate,
+  authorizeRoles('admin', 'superadmin', 'support'),
+  reportController.getDashboardStats
+);
+// Alternate path in case mounting is different
+app.get(
+  '/api/dashboard',
+  authenticate,
+  authorizeRoles('admin', 'superadmin', 'support'),
+  reportController.getDashboardStats
+);
 
 // Apply general API rate limiting to all routes
 app.use('/api', apiLimiter);

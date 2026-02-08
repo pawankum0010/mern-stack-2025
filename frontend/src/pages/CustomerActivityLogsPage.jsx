@@ -284,12 +284,15 @@ const CustomerActivityLogsPage = () => {
     return (
       <>
         <AppNavbar />
-        <Container className="py-5">
-          <div className="text-center">
+        <div className="admin-page">
+          <div className="admin-page-header">
+            <h1 className="admin-page-title">Customer Activity Logs</h1>
+          </div>
+          <div className="text-center py-5">
             <Spinner animation="border" role="status" />
             <p className="mt-2 text-muted">Loading activity logs...</p>
           </div>
-        </Container>
+        </div>
       </>
     );
   }
@@ -297,11 +300,15 @@ const CustomerActivityLogsPage = () => {
   return (
     <>
       <AppNavbar />
-      <Container className="py-4">
-        <Card>
-          <Card.Header>
-            <div className="d-flex justify-content-between align-items-center">
-              <Card.Title className="mb-0">Customer Activity Logs</Card.Title>
+      <div className="admin-page">
+        <div className="admin-page-header">
+          <h1 className="admin-page-title">Customer Activity Logs</h1>
+          <p className="admin-page-subtitle">View and filter customer activity</p>
+        </div>
+        <Card className="admin-card">
+          <Card.Header className="admin-card-header">
+            <div className="admin-card-header-inner">
+              <h2 className="admin-card-title mb-0">Activity Logs</h2>
               <Button variant="outline-primary" size="sm" onClick={fetchLogs}>
                 <FiRefreshCw className="me-1" />
                 Refresh
@@ -695,7 +702,7 @@ const CustomerActivityLogsPage = () => {
                   </div>
                 ) : (
                   <div className="table-responsive">
-                  <Table striped bordered hover>
+                  <Table responsive className="admin-table">
                     <thead>
                       <tr>
                         <th>Date & Time</th>
@@ -792,7 +799,7 @@ const CustomerActivityLogsPage = () => {
             )}
           </Card.Body>
         </Card>
-      </Container>
+      </div>
     </>
   );
 };

@@ -17,7 +17,7 @@ const BackendLoginPage = () => {
 
   const userRole = user?.role?.name?.toLowerCase?.();
   if (isAuthenticated && userRole && ADMIN_ROLES.includes(userRole)) {
-    return <Navigate to="/admin/products" replace />;
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   const handleChange = (e) => {
@@ -32,7 +32,7 @@ const BackendLoginPage = () => {
       const response = await login(formState);
       const role = response?.data?.user?.role?.name?.toLowerCase?.();
       if (role && ADMIN_ROLES.includes(role)) {
-        navigate('/admin/products', { replace: true });
+        navigate('/admin/dashboard', { replace: true });
         return;
       }
       setError('This page is for administrators only. Please use the main site to sign in.');

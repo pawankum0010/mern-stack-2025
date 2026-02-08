@@ -7,6 +7,7 @@ import {
   FiChevronRight,
   FiLogOut,
   FiUser,
+  FiGrid,
   FiPackage,
   FiUsers,
   FiShoppingCart,
@@ -23,6 +24,7 @@ import { useAuth } from '../context/AuthContext';
 import './BackendLayout.css';
 
 const MENU = [
+  { path: '/admin/dashboard', label: 'Dashboard', icon: FiGrid },
   { path: '/admin/products', label: 'Products', icon: FiPackage },
   { path: '/admin/users', label: 'Users', icon: FiUsers },
   {
@@ -158,7 +160,7 @@ const BackendLayout = () => {
             {sidebarCollapsed ? <FiChevronRight size={20} /> : <FiChevronLeft size={20} />}
           </Button>
           {!sidebarCollapsed && (
-            <div className="backend-sidebar-logo" onClick={() => navigate('/admin/products')}>
+            <div className="backend-sidebar-logo" onClick={() => navigate('/admin/dashboard')}>
               <img src="/logo.svg" alt="Soft Chilli" onError={(e) => { e.target.style.display = 'none'; }} />
               <span>Admin</span>
             </div>

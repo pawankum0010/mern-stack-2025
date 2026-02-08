@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import api from '../api/client';
 
@@ -30,12 +31,14 @@ const getGuestCartCount = () => {
 
 export const CartProvider = ({ children }) => {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   const [cartCount, setCartCount] = useState(0);
   const [loading, setLoading] = useState(false);
 
+  const isAdminPath = location.pathname.startsWith('/admin') || location.pathname.startsWith('/backend');
+
   const fetchCartCount = async () => {
     if (!isAuthenticated) {
-      // For guests, get count from localStorage
       const count = getGuestCartCount();
       setCartCount(count);
       return;
@@ -54,32 +57,29 @@ export const CartProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (isAuthenticated) {
-      // Add a small delay to allow cart merge to complete after login
-      const timer = setTimeout(() => {
-        fetchCartCount();
-      }, 500);
-      return () => clearTimeout(timer);
-    } else {
-      fetchCartCount();
+    if (isAdminPath) {
+      setCartCount(0);
+      return;
     }
+    if (isAuthenticated) {
+      const timer = setTimeout(() => fetchCartCount(), 500);
+      return () => clearTimeout(timer);
+    }
+    fetchCartCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdminPath]);
 
   // Also listen for custom event to refresh cart after merge
   useEffect(() => {
     const handleCartRefresh = () => {
-      if (isAuthenticated) {
+      if (isAuthenticated && !isAdminPath) {
         fetchCartCount();
       }
     };
-    
     window.addEventListener('cart:refresh', handleCartRefresh);
-    return () => {
-      window.removeEventListener('cart:refresh', handleCartRefresh);
-    };
+    return () => window.removeEventListener('cart:refresh', handleCartRefresh);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isAdminPath]);
 
   const refreshCart = () => {
     fetchCartCount();
