@@ -98,7 +98,6 @@ const BackendLayout = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const breadcrumbs = pathToBreadcrumb(location.pathname);
-  const isSupport = user?.role?.name?.toLowerCase() === 'support';
 
   const handleLogout = async () => {
     await logout();
