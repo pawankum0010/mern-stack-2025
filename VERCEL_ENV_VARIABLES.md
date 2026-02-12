@@ -23,6 +23,7 @@ SMTP_FROM_NAME=Soft Chilli
 
 ### 3. Other Required Variables
 
+
 Make sure you also have:
 ```
 MONGODB_URI=your-mongodb-connection-string
