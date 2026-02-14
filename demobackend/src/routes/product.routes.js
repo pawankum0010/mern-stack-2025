@@ -4,6 +4,7 @@ const {
   createProduct,
   getProducts,
   getProductById,
+  getProductImage,
   updateProduct,
   deleteProduct,
 } = require('../controllers/product.controller');
@@ -16,6 +17,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', logActivity('filter_products'), getProducts);
+router.get('/:id/image/:index?', getProductImage);
 router.get('/:id', logActivity('view_product'), getProductById);
 
 // Protected admin routes

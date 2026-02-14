@@ -996,34 +996,35 @@ const sendWelcomeEmail = async (customer) => {
 
     console.log(`Found ${featuredProducts.length} featured products for welcome email`);
 
-    // Build featured products HTML
+    // Backend base URL for image links (email clients need absolute URLs; data: is often blocked)
+    const backendUrl = (process.env.BACKEND_URL || process.env.API_URL || 'http://localhost:5000').replace(/\/$/, '');
+
+    // Build featured products HTML with absolute image URLs so images show in Gmail/Outlook
     const featuredProductsHtml = featuredProducts.length > 0 ? `
       <div class="order-summary" style="margin-top: 30px;">
         <h3 style="margin-top: 0; text-align: center; color: #28a745;">Featured Products</h3>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
           ${featuredProducts.map((product) => {
-            const productImage = product.images?.[0] 
-              ? (product.images[0].startsWith('data:image/') 
-                  ? product.images[0] 
-                  : `data:image/jpeg;base64,${product.images[0]}`)
-              : null;
+            const hasImage = product.images && product.images.length > 0;
+            const productImageUrl = hasImage ? `${backendUrl}/api/products/${product._id}/image/0` : null;
             const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:3000').replace(/\/$/, '');
             const productUrl = `${frontendUrl}/products/${product._id}`;
-            
+            const safeName = (product.name || '').replace(/"/g, '&quot;');
+
             return `
               <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; background: white;">
-                ${productImage ? `
+                ${productImageUrl ? `
                   <a href="${productUrl}" style="text-decoration: none; color: inherit;">
-                    <img src="${productImage}" alt="${product.name}" style="width: 100%; max-width: 150px; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px;">
+                    <img src="${productImageUrl}" alt="${safeName}" style="width: 100%; max-width: 150px; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; display: block;">
                   </a>
                 ` : ''}
                 <h4 style="margin: 10px 0; font-size: 16px;">
                   <a href="${productUrl}" style="text-decoration: none; color: #007bff;">${product.name}</a>
                 </h4>
                 <div style="margin: 10px 0;">
-                  <strong style="color: #28a745; font-size: 18px;">₹${product.price.toFixed(2)}</strong>
+                  <strong style="color: #28a745; font-size: 18px;">₹${Number(product.price || 0).toFixed(2)}</strong>
                   ${product.compareAtPrice && product.compareAtPrice > product.price ? `
-                    <span style="text-decoration: line-through; color: #999; margin-left: 10px;">₹${product.compareAtPrice.toFixed(2)}</span>
+                    <span style="text-decoration: line-through; color: #999; margin-left: 10px;">₹${Number(product.compareAtPrice).toFixed(2)}</span>
                   ` : ''}
                 </div>
                 <a href="${productUrl}" class="button" style="display: inline-block; padding: 8px 20px; background-color: #007bff; color: #ffffff !important; text-decoration: none; border-radius: 5px; margin-top: 10px; font-size: 14px;">View Product</a>

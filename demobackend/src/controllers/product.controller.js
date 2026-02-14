@@ -349,6 +349,45 @@ exports.getProductById = asyncHandler(async (req, res) => {
   });
 });
 
+/**
+ * Serve a single product image by id and index (public, for email/img tags).
+ * GET /api/products/:id/image/:index?
+ */
+exports.getProductImage = asyncHandler(async (req, res) => {
+  const { id, index } = req.params;
+  const imageIndex = Math.max(0, parseInt(index, 10) || 0);
+
+  if (!isValidObjectId(id)) {
+    return sendError(res, { message: 'Invalid product id', statusCode: 400 });
+  }
+
+  const product = await Product.findById(id).select('images').lean();
+  if (!product || !product.images || !product.images[imageIndex]) {
+    return sendNotFound(res, { message: 'Product image not found' });
+  }
+
+  const dataUrl = product.images[imageIndex];
+  let buffer;
+  let mime = 'image/jpeg';
+
+  if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
+    const match = dataUrl.match(/^data:(image\/[a-z+]+);base64,(.+)$/i);
+    if (match) {
+      mime = match[1];
+      buffer = Buffer.from(match[2], 'base64');
+    }
+  }
+  if (!buffer && typeof dataUrl === 'string') {
+    buffer = Buffer.from(dataUrl, 'base64');
+  }
+  if (!buffer || buffer.length === 0) {
+    return sendNotFound(res, { message: 'Product image not found' });
+  }
+
+  res.set('Cache-Control', 'public, max-age=86400');
+  res.type(mime).send(buffer);
+});
+
 exports.updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
